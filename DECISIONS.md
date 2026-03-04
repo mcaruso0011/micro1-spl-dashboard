@@ -87,3 +87,23 @@ Format: `[YYYY-MM-DD] — [Decision] — [Reason / tradeoff]`
 [2026-02-24] — Pipeline stages synthesized from task status distribution after import — Five named stages (Ingestion → Client Delivery) are computed proportionally from task statuses rather than stored explicitly. Throughput = completed/tasks * 100, guarded against divide-by-zero.
 
 [2026-02-24] — Excel BOM stripping added to `parseCSV` — Excel-generated CSVs prepend `\uFEFF` (UTF-8 BOM), corrupting the first column name. Stripped in `parseCSV` with `text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text`.
+
+[2026-02-28] — CLIENTS and PROJECTS added as module-level constants, not useState — No UI reads them yet. Keeping them as constants until the project switcher is built next session; promoting to state at that point avoids premature wiring.
+
+[2026-02-28] — Project lifecycle `status` ("active") is separate from computed health `status` ("healthy"/"at-risk"/"critical") — PROJECTS[n].status is the operational lifecycle field per FOUNDATION.md. computeHealthScore returns its own status field. No field name collision; different objects.
+
+[2026-02-28] — quality_score capped at 100 in computeHealthScore — FOUNDATION.md does not explicitly cap it, but scores above 100 distort the composite. P-001 would compute 104.9 uncapped. Cap applied with Math.min(..., 100).
+
+[2026-02-28] — computeHealthScore takes allProjects as second argument rather than reading module-level PROJECTS — Keeps it a pure function with no external dependencies, consistent with calcReadiness(expert). Enables unit testing and future state-based calls without refactoring.
+
+[2026-02-28] — Clients changed from OpenAI/Google/Microsoft to Lab Alpha/Lab Beta/NovaMed AI — Plan originally used real company names as placeholders. Switched to fictional names to avoid implying real partnerships in a portfolio demo.
+
+[2026-03-03] — BATCHES added as module-level constant (not useState) — Same rationale as CLIENTS/PROJECTS: no CSV import path updates them yet. 8 records across 3 projects; completed_tasks values sum to each project's completed_tasks field so batch-level and project-level totals stay consistent.
+
+[2026-03-03] — Projects tab uses React.Fragment per row to allow the detail panel to render as a sibling <tr> — A detail panel that spans all 9 columns must be a <tr> child of <tbody>. React.Fragment is the only way to return two <tr> elements from a single .map() iteration without introducing an extra DOM wrapper that would break table structure.
+
+[2026-03-03] — Expert load in Projects tab detail panel computed inline from PROJECTS.filter() — No stored load field. Count of PROJECTS where assigned_expert_ids.includes(eid) is the correct derived value per FOUNDATION.md data model. Consistent with the load_score formula in computeHealthScore.
+
+[2026-03-03] — Batch progress bar color: green at 100%, amber if in progress, track color if 0% — 0% renders as an invisible fill (same color as track) rather than a colored sliver, which would falsely imply progress. Green only when fully complete — amber for any partial state.
+
+[2026-03-03] — Projects tab placed second in nav (after Overview) — It is the primary working view for the SPL; Overview is the quick-glance summary. Positioning reflects usage frequency: scan Overview first, then drill into Projects.

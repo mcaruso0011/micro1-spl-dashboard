@@ -37,6 +37,103 @@
     };
 
     // --- Simulated Data (used as initial state) ---
+
+    const CLIENTS = [
+      { client_id: "C-001", name: "Lab Alpha",  industry: "research", quality_threshold: 92, active: true },
+      { client_id: "C-002", name: "Lab Beta",   industry: "research", quality_threshold: 95, active: true },
+      { client_id: "C-003", name: "NovaMed AI", industry: "medtech",  quality_threshold: 96, active: true },
+    ];
+
+    const PROJECTS = [
+      {
+        project_id:           "P-001",
+        client_id:            "C-001",
+        name:                 "Legal Annotation Q1",
+        domain:               "legal",
+        start_date:           "2026-01-15",
+        deadline:             "2026-04-15",
+        target_task_count:    500,
+        target_quality_score: 92,
+        status:               "active",
+        // health score inputs
+        total_days:            90,
+        elapsed_days:          45,
+        completed_tasks:       240,
+        recent_quality_scores: [...Array(10).fill(97), ...Array(10).fill(96)],
+        assigned_expert_ids:   ["E-001", "E-003", "E-005", "E-007"],
+      },
+      {
+        project_id:           "P-002",
+        client_id:            "C-002",
+        name:                 "Medical QA Sprint",
+        domain:               "medical",
+        start_date:           "2026-01-01",
+        deadline:             "2026-03-01",
+        target_task_count:    400,
+        target_quality_score: 95,
+        status:               "active",
+        // health score inputs
+        total_days:            60,
+        elapsed_days:          30,
+        completed_tasks:       140,
+        recent_quality_scores: Array.from({ length: 20 }, (_, i) => i % 2 === 0 ? 91 : 90),
+        assigned_expert_ids:   ["E-002", "E-004", "E-006", "E-007"],
+      },
+      {
+        project_id:           "P-003",
+        client_id:            "C-003",
+        name:                 "Engineering Data Batch",
+        domain:               "engineering",
+        start_date:           "2026-01-01",
+        deadline:             "2026-03-17",
+        target_task_count:    600,
+        target_quality_score: 92,
+        status:               "active",
+        // health score inputs
+        total_days:            75,
+        elapsed_days:          50,
+        completed_tasks:       200,
+        recent_quality_scores: Array(20).fill(79),
+        assigned_expert_ids:   ["E-001", "E-004", "E-006", "E-008"],
+      },
+    ];
+
+    const BATCHES = [
+      // P-001 Legal Annotation Q1 — 500 tasks, 240 done
+      { batch_id: "B-001", project_id: "P-001", name: "Contracts Set A", due_date: "2026-02-15", target_task_count: 160, completed_tasks: 160 },
+      { batch_id: "B-002", project_id: "P-001", name: "Contracts Set B", due_date: "2026-03-15", target_task_count: 180, completed_tasks:  80 },
+      { batch_id: "B-003", project_id: "P-001", name: "Regulations Set", due_date: "2026-04-10", target_task_count: 160, completed_tasks:   0 },
+      // P-002 Medical QA Sprint — 400 tasks, 140 done
+      { batch_id: "B-004", project_id: "P-002", name: "Diagnostic QA",   due_date: "2026-02-01", target_task_count: 200, completed_tasks: 140 },
+      { batch_id: "B-005", project_id: "P-002", name: "Treatment QA",    due_date: "2026-03-01", target_task_count: 200, completed_tasks:   0 },
+      // P-003 Engineering Data Batch — 600 tasks, 200 done
+      { batch_id: "B-006", project_id: "P-003", name: "Systems Batch 1", due_date: "2026-02-01", target_task_count: 200, completed_tasks: 120 },
+      { batch_id: "B-007", project_id: "P-003", name: "Systems Batch 2", due_date: "2026-03-01", target_task_count: 200, completed_tasks:  80 },
+      { batch_id: "B-008", project_id: "P-003", name: "Systems Batch 3", due_date: "2026-03-17", target_task_count: 200, completed_tasks:   0 },
+    ];
+
+    const computeHealthScore = (project, allProjects) => {
+      const { completed_tasks, elapsed_days, target_task_count, total_days,
+              recent_quality_scores, target_quality_score, assigned_expert_ids } = project;
+
+      const pace_score    = Math.min(
+        (completed_tasks / elapsed_days) / (target_task_count / total_days), 1
+      ) * 100;
+
+      const rolling_avg   = recent_quality_scores.reduce((a, b) => a + b, 0) / recent_quality_scores.length;
+      const quality_score = Math.min((rolling_avg / target_quality_score) * 100, 100);
+
+      const loads         = assigned_expert_ids.map(eid =>
+        allProjects.filter(p => p.assigned_expert_ids.includes(eid)).length
+      );
+      const load_score    = (1 / (loads.reduce((a, b) => a + b, 0) / loads.length)) * 100;
+
+      const health_score  = pace_score * 0.4 + quality_score * 0.4 + load_score * 0.2;
+      const status        = health_score >= 85 ? "healthy" : health_score >= 70 ? "at-risk" : "critical";
+
+      return { pace_score, quality_score, load_score, health_score, status };
+    };
+
     const EXPERTS = [
       { id: "E-001", name: "Dr. Sarah Chen",       domain: "Mathematics", university: "Stanford",      rating: 4.9, tasksCompleted: 347, avgTime: 22, accuracy: 97.3, status: "active", trend: "up",     trendPct: 2.1 },
       { id: "E-002", name: "Prof. James Okafor",   domain: "Physics",     university: "MIT",           rating: 4.8, tasksCompleted: 289, avgTime: 26, accuracy: 95.1, status: "active", trend: "stable", trendPct: 0.3 },
@@ -746,6 +843,7 @@
     function Dashboard() {
       const [activeTab,       setActiveTab]       = useState("overview");
       const [selectedExpert,  setSelectedExpert]  = useState(null);
+      const [selectedProject, setSelectedProject] = useState(null);
       const [searchQuery,     setSearchQuery]     = useState("");
       const [currentTime,     setCurrentTime]     = useState(new Date());
       const [animateIn,       setAnimateIn]       = useState(false);
@@ -828,10 +926,11 @@
       const activeExperts = experts.filter(e => e.status === "active").length;
 
       const tabs = [
-        { id: "overview", label: "Overview" },
-        { id: "experts",  label: "Expert Roster" },
-        { id: "pipeline", label: "Pipeline" },
-        { id: "alerts",   label: `Alerts (${alerts.length})` },
+        { id: "overview",  label: "Overview" },
+        { id: "projects",  label: "Projects" },
+        { id: "experts",   label: "Expert Roster" },
+        { id: "pipeline",  label: "Pipeline" },
+        { id: "alerts",    label: `Alerts (${alerts.length})` },
       ];
 
       return (
@@ -945,6 +1044,43 @@
                   ))}
                 </div>
 
+                {/* Health Snapshot */}
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: T.textPrimary }}>
+                    Project Health Snapshot
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                    {PROJECTS.map(project => {
+                      const { health_score, status } = computeHealthScore(project, PROJECTS);
+                      const client = CLIENTS.find(c => c.client_id === project.client_id);
+                      const daysLeft = Math.ceil((new Date(project.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+                      const statusColor = status === "healthy" ? T.green : status === "at-risk" ? T.amber : T.red;
+                      const statusLabel = status === "healthy" ? "Healthy" : status === "at-risk" ? "At Risk" : "Critical";
+                      return (
+                        <div key={project.project_id} style={{
+                          background: T.cardBg,
+                          borderRadius: 14,
+                          padding: "20px 22px",
+                          border: `1px solid ${T.border}`,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 10,
+                        }}>
+                          <span style={{ alignSelf: "flex-start", color: statusColor, background: statusColor + "1E", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500 }}>
+                            {statusLabel}
+                          </span>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: T.textPrimary }}>{project.name}</div>
+                          <div style={{ fontSize: 12, color: T.textSecondary }}>{client ? client.name : ""}</div>
+                          <div style={{ fontSize: 28, fontWeight: 700, color: statusColor, fontFamily: T.fontMono }}>{health_score.toFixed(1)}</div>
+                          <div style={{ fontSize: 12, color: T.textMuted }}>
+                            {daysLeft >= 0 ? `${daysLeft}d to deadline` : `${Math.abs(daysLeft)}d overdue`}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* Charts Row */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                   <div style={{ background: T.cardBg, borderRadius: 14, padding: 22, border: `1px solid ${T.border}` }}>
@@ -983,6 +1119,160 @@
                     ))}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* ===== PROJECTS TAB ===== */}
+            {activeTab === "projects" && (
+              <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 24 }}>
+
+                {/* Page title */}
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: T.textPrimary }}>Active Projects</div>
+                  <div style={{ fontSize: 13, color: T.textMuted, marginTop: 4 }}>
+                    {PROJECTS.length} projects · {PROJECTS.filter(p => computeHealthScore(p, PROJECTS).status !== "healthy").length} need attention
+                  </div>
+                </div>
+
+                {/* Table */}
+                <div style={{ background: T.cardBg, borderRadius: 14, border: `1px solid ${T.border}`, overflow: "hidden" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr>
+                        {["Project", "Client", "Domain", "Health", "Pace", "Quality", "Experts", "Deadline", "Status"].map(col => (
+                          <th key={col} style={{ padding: "12px 16px", fontSize: 11, color: T.textMuted,
+                            textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 500,
+                            textAlign: "left", borderBottom: `1px solid ${T.border}` }}>
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {PROJECTS.map(project => {
+                        const { health_score, status } = computeHealthScore(project, PROJECTS);
+                        const client = CLIENTS.find(c => c.client_id === project.client_id);
+                        const pace_score = Math.min(
+                          (project.completed_tasks / project.elapsed_days) / (project.target_task_count / project.total_days), 1
+                        ) * 100;
+                        const quality_avg = project.recent_quality_scores.reduce((a, b) => a + b, 0) / project.recent_quality_scores.length;
+                        const daysLeft = Math.ceil((new Date(project.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+                        const statusColor = status === "healthy" ? T.green : status === "at-risk" ? T.amber : T.red;
+                        const statusLabel = status === "healthy" ? "Healthy" : status === "at-risk" ? "At Risk" : "Critical";
+                        const isSelected = selectedProject?.project_id === project.project_id;
+                        const tdStyle = { padding: "14px 16px", verticalAlign: "middle" };
+                        return (
+                          <React.Fragment key={project.project_id}>
+                            <tr
+                              onClick={() => setSelectedProject(isSelected ? null : project)}
+                              style={{ cursor: "pointer", background: isSelected ? T.trackBg : "transparent",
+                                borderTop: `1px solid ${T.border}` }}>
+                              <td style={tdStyle}>
+                                <span style={{ fontSize: 14, fontWeight: 600, color: T.textPrimary }}>{project.name}</span>
+                              </td>
+                              <td style={tdStyle}>
+                                <span style={{ fontSize: 13, color: T.textSecondary }}>{client?.name}</span>
+                              </td>
+                              <td style={tdStyle}>
+                                <span style={{ fontSize: 11, color: T.blue, background: T.blue + "1E",
+                                  padding: "2px 8px", borderRadius: 20 }}>{project.domain}</span>
+                              </td>
+                              <td style={tdStyle}>
+                                <span style={{ fontFamily: T.fontMono, fontWeight: 700, fontSize: 15, color: statusColor }}>
+                                  {health_score.toFixed(1)}
+                                </span>
+                              </td>
+                              <td style={tdStyle}>
+                                <span style={{ fontFamily: T.fontMono, fontSize: 13,
+                                  color: pace_score >= 85 ? T.green : pace_score >= 70 ? T.amber : T.red }}>
+                                  {pace_score.toFixed(0)}%
+                                </span>
+                              </td>
+                              <td style={tdStyle}>
+                                <span style={{ fontFamily: T.fontMono, fontSize: 13, color: T.textPrimary }}>
+                                  {quality_avg.toFixed(1)}
+                                </span>
+                              </td>
+                              <td style={tdStyle}>
+                                <span style={{ fontSize: 13, color: T.textSecondary }}>{project.assigned_expert_ids.length}</span>
+                              </td>
+                              <td style={tdStyle}>
+                                <span style={{ fontSize: 13, color: daysLeft < 7 ? T.red : T.textSecondary }}>
+                                  {daysLeft >= 0 ? `${daysLeft}d` : `${Math.abs(daysLeft)}d over`}
+                                </span>
+                              </td>
+                              <td style={tdStyle}>
+                                <span style={{ color: statusColor, background: statusColor + "1E",
+                                  padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500 }}>
+                                  {statusLabel}
+                                </span>
+                              </td>
+                            </tr>
+                            {isSelected && (
+                              <tr>
+                                <td colSpan={9} style={{ padding: 0 }}>
+                                  <div style={{ padding: "20px 24px", background: T.pageBg,
+                                    borderTop: `1px solid ${T.border}` }}>
+                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+
+                                      {/* Batches */}
+                                      <div>
+                                        <div style={{ fontSize: 12, fontWeight: 600, color: T.textSecondary,
+                                          marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                                          Batches
+                                        </div>
+                                        {BATCHES.filter(b => b.project_id === project.project_id).map(batch => {
+                                          const pct = Math.round(batch.completed_tasks / batch.target_task_count * 100);
+                                          return (
+                                            <div key={batch.batch_id} style={{ marginBottom: 12 }}>
+                                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                                                <span style={{ fontSize: 12, color: T.textPrimary }}>{batch.name}</span>
+                                                <span style={{ fontSize: 12, fontFamily: T.fontMono, color: T.textMuted }}>{pct}%</span>
+                                              </div>
+                                              <div style={{ height: 4, borderRadius: 2, background: T.trackBg }}>
+                                                <div style={{ height: "100%", borderRadius: 2, width: pct + "%",
+                                                  background: pct === 100 ? T.green : pct > 0 ? T.amber : T.trackBg }} />
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+
+                                      {/* Experts */}
+                                      <div>
+                                        <div style={{ fontSize: 12, fontWeight: 600, color: T.textSecondary,
+                                          marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+                                          Assigned Experts
+                                        </div>
+                                        {project.assigned_expert_ids.map(eid => {
+                                          const expert = experts.find(e => e.id === eid);
+                                          const load = PROJECTS.filter(p => p.assigned_expert_ids.includes(eid)).length;
+                                          if (!expert) return null;
+                                          return (
+                                            <div key={eid} style={{ display: "flex", justifyContent: "space-between",
+                                              alignItems: "center", marginBottom: 10 }}>
+                                              <span style={{ fontSize: 13, color: T.textPrimary }}>{expert.name}</span>
+                                              <span style={{ fontSize: 11, color: T.textMuted, background: T.trackBg,
+                                                padding: "2px 8px", borderRadius: 20 }}>
+                                                {load} active project{load !== 1 ? "s" : ""}
+                                              </span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
               </div>
             )}
 

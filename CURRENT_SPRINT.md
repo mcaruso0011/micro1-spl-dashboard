@@ -9,23 +9,26 @@
 7 features to ship. When all 7 are checked, v1 is done and shareable.
 
 ```
-✅ 1. CSV import modal          DONE
-⬜ 2. Health score display      IN PROGRESS (see below)
-⬜ 3. Risk alerts panel         IN PROGRESS (see below)
-⬜ 4. Project switcher          Thursday
-⬜ 5. Column sorting            Friday
-⬜ 6. CSV export                Friday
-⬜ 7. README polish + share     Weekend
+✅ 1.  CSV import modal          DONE
+✅ 1a. Synthetic data layer      DONE — CLIENTS, PROJECTS, BATCHES, computeHealthScore
+✅ 2a. Health Snapshot           DONE — Overview tab, 3 color-coded project cards
+✅ 2b. Projects tab              DONE — full table + click-to-expand detail panels
+⬜ 3.  Risk alerts panel         NEXT — Overview tab section, computed from health score data
+⬜ 4.  Project switcher          after #3
+⬜ 5.  Column sorting            Friday
+⬜ 6.  CSV export                Friday
+⬜ 7.  README polish + share     Weekend
 ```
 
-**Progress: 1 of 7 — 14% to gold camo**
+**Progress: 4 of 7 milestones — Projects tab complete, Risk Alerts panel is next**
 
 ---
 
 ## Current State
 
-Four-tab dashboard is built and running:
-- ✅ Overview tab — KPI cards, daily charts, pipeline funnel, activity feed (top 3 alerts)
+Five-tab dashboard is built and running:
+- ✅ Overview tab — KPI cards, Health Snapshot (3 project cards), daily charts, pipeline funnel, activity feed
+- ✅ Projects tab — sortable table, health/pace/quality/deadline columns, click-to-expand batch + expert detail panels
 - ✅ Expert Roster tab — searchable table, trend % column, readiness score column, click-to-expand detail panel
 - ✅ Pipeline tab — funnel visualization, stage health cards, static notes section
 - ✅ Alerts tab — categorized alerts, acknowledge actions, timestamped log
@@ -35,73 +38,42 @@ Theme: warm cream/pastel light. Fonts: Instrument Sans + Fira Code. Design token
 
 ---
 
-## Next Up — Step 1: Synthetic Data Design (DO THIS BEFORE UI WORK)
+## ✅ Completed This Session — Projects Tab (Step 2b)
 
-Before building health score display or risk alerts, Claude Code must first build out the synthetic data layer. The data needs to tell a story — three distinct project health states must be visible the moment someone opens the dashboard.
+**Bug fixed:** Health Snapshot was rendering blank project and client names because the implementation used `project.project_name` and `client.client_name` — the actual data fields are `.name` for both. Fixed in both `dashboard.jsx` and `preview.html`.
 
-### Required synthetic projects (minimum 3):
+**BATCHES constant added** — 8 batch records across 3 projects. Completed task counts sum to match each project's `completed_tasks` field:
+- P-001: Contracts Set A (100%), Contracts Set B (44%), Regulations Set (0%)
+- P-002: Diagnostic QA (70%), Treatment QA (0%)
+- P-003: Systems Batch 1 (60%), Systems Batch 2 (40%), Systems Batch 3 (0%)
 
-**Project 1 — Healthy (🟢)**
-- Client: OpenAI
-- Domain: Legal
-- Pace on track, quality above threshold, experts lightly loaded
-- Health score should compute to ≥ 85
+**Projects tab** — second in nav (Overview | Projects | Expert Roster | Pipeline | Alerts):
+- 9-column table: Project, Client, Domain, Health, Pace, Quality, Experts, Deadline, Status
+- All values computed at render time from PROJECTS, CLIENTS, BATCHES, computeHealthScore, experts state
+- Pace and Health scores color-coded green/amber/red using T tokens
+- Deadline turns red when < 7 days out
+- Click a row → inline detail panel expands below it (React.Fragment pattern)
+- Detail panel: left column = batch list with progress bars, right column = assigned experts with load count
+- Click same row again → collapses (toggle via `selectedProject` state)
 
-**Project 2 — At Risk (🟡)**
-- Client: Google
-- Domain: Medical
-- Pace slightly behind, quality borderline, one expert overloaded
-- Health score should compute to 70–84
-
-**Project 3 — Critical (🔴)**
-- Client: Microsoft
-- Domain: Financial
-- Pace significantly behind deadline, quality below threshold
-- Health score should compute to < 70
-
-### Each project needs:
-- At least 2 batches with realistic task distributions
-- 3–5 assigned experts pulled from the existing expert roster
-- Enough completed tasks with quality scores to make the rolling average meaningful
-- Timestamped task completion dates spread across the last 2–3 weeks (not all on the same day)
-- ExpertProjectAssignment records so load is computable
-
-### Data must support these computed fields (see FOUNDATION.md for formulas):
-- `health_score` — weighted composite (Pace 40% + Quality 40% + Load 20%)
-- `pace_score` — current completion rate vs required rate to hit deadline
-- `quality_score` — rolling avg of last 20 tasks vs project target
-- `load_score` — inverse of avg active project count across assigned experts
-- `days_to_deadline` — computed from deadline date
-- `projected_completion_date` — based on current pace
+Expected table values (today ~2026-03-03):
+| Project | Health | Pace | Quality | Deadline |
+|---|---|---|---|---|
+| Legal Annotation Q1 | 91.7 green | 96% | 96.5 | ~43d |
+| Medical QA Sprint | 77.5 amber | 70% | 90.5 | ~2d over |
+| Engineering Data Batch | 65.8 red | 50% | 79.0 | ~14d |
 
 ---
 
-## Next Up — Step 2: Health Score Display (after data is ready)
+## Next Up — Step 3: Risk Alerts Panel
 
-Two components, built in sequence:
-
-**A. Overview tab — Health Snapshot section**
-- New section added to existing Overview tab
-- Row of project cards, one per active project
-- Each card: project name, client, health score number, color-coded status badge, days to deadline
-- Scannable in one glance — this is the 30-second executive view
-- No drill-down from here
-
-**B. New "Projects" tab — Project List view**
-- Full dedicated tab added to the dashboard nav
-- One row per project with: health score, pace vs projection, quality score, expert count, days to deadline, status badge
-- Click a row to expand a detail panel showing batch breakdown and assigned experts
-- This is where the SPL actually works day to day
-
----
-
-## Next Up — Step 3: Risk Alerts Panel (after health score is built)
-
-- Surfaces only at-risk (🟡) and critical (🔴) projects
-- Each alert shows project name, client, status, and one-line reason
-- Example: "Microsoft Financial Batch 2 — pace 34% below required rate"
 - Lives on the Overview tab as a dedicated section below the Health Snapshot
-- Alerts are computed from the same health score data, not hardcoded
+- Surfaces only at-risk (🟡) and critical (🔴) projects
+- Each alert row: project name, client, status badge, one-line computed reason
+  - Reason = whichever health score component is dragging the score down most
+  - Example: "pace 50% of required rate" or "quality 13% below target"
+- No hardcoded strings — everything derived from PROJECTS + computeHealthScore
+- Does not require new state — pure render-time computation
 
 ---
 
