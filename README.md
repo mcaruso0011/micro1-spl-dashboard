@@ -69,4 +69,4 @@ To continue building with Claude Code:
 
 ## Author
 
-**Mike K.** — Built as part of exploring the Strategic Projects Lead role at micro1.
+**Michael Caruso** — Built as part of exploring the Strategic Projects Lead role at micro1.

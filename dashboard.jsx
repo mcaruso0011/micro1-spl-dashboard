@@ -1073,6 +1073,65 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* Risk Alerts */}
+            {(() => {
+              const alertProjects = PROJECTS
+                .map(p => ({ project: p, ...computeHealthScore(p, PROJECTS) }))
+                .filter(({ status }) => status !== "healthy");
+              const alertBadgeColor = alertProjects.some(a => a.status === "critical") ? T.red
+                : alertProjects.length > 0 ? T.amber
+                : T.green;
+              const alertBadgeLabel = alertProjects.length === 0
+                ? "All clear"
+                : `${alertProjects.length} need attention`;
+              return (
+                <div style={{ background: T.cardBg, borderRadius: 14, padding: 22, border: `1px solid ${T.border}` }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: T.textPrimary,
+                    display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    Risk Alerts
+                    <span style={{ fontSize: 11, color: alertBadgeColor, background: alertBadgeColor + "1E",
+                      padding: "3px 10px", borderRadius: 20, fontWeight: 500 }}>
+                      {alertBadgeLabel}
+                    </span>
+                  </div>
+                  {alertProjects.length === 0 ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, color: T.textMuted, fontSize: 13 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: T.green,
+                        display: "inline-block" }} />
+                      All projects healthy
+                    </div>
+                  ) : (
+                    alertProjects.map(({ project, status, pace_score, quality_score, load_score }) => {
+                      const client = CLIENTS.find(c => c.client_id === project.client_id);
+                      const statusColor = status === "at-risk" ? T.amber : T.red;
+                      const statusLabel = status === "at-risk" ? "At Risk" : "Critical";
+                      const gaps = [
+                        { gap: 100 - pace_score,    label: `Pace at ${pace_score.toFixed(0)}% of required rate` },
+                        { gap: 100 - quality_score, label: `Quality ${(100 - quality_score).toFixed(0)}% below target` },
+                        { gap: 100 - load_score,    label: `Expert load: avg ${(100 / load_score).toFixed(1)} projects per person` },
+                      ];
+                      const reason = gaps.sort((a, b) => b.gap - a.gap)[0].label;
+                      return (
+                        <div key={project.project_id} style={{ display: "flex", alignItems: "center", gap: 16,
+                          padding: "10px 0", borderTop: `1px solid ${T.border}` }}>
+                          <span style={{ color: statusColor, background: statusColor + "1E",
+                            padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500,
+                            whiteSpace: "nowrap" }}>{statusLabel}</span>
+                          <span style={{ fontSize: 14, fontWeight: 600, color: T.textPrimary, minWidth: 180 }}>
+                            {project.name}
+                          </span>
+                          <span style={{ fontSize: 13, color: T.textSecondary, minWidth: 120 }}>
+                            {client?.name}
+                          </span>
+                          <span style={{ fontSize: 13, color: T.textMuted }}>{reason}</span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              );
+            })()}
+
             {/* Charts Row */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <div style={{ background: T.cardBg, borderRadius: 14, padding: 22, border: `1px solid ${T.border}` }}>
@@ -1469,7 +1528,7 @@ export default function Dashboard() {
         display: "flex", justifyContent: "space-between", alignItems: "center",
         fontSize: 11, color: T.textMuted,
       }}>
-        <span>micro1 Data Ops Dashboard · Built by Mike K. · Strategic Projects Lead Demo</span>
+        <span>micro1 Data Ops Dashboard · Built by Michael Caruso · Strategic Projects Lead Demo</span>
         <span>Simulated data for demonstration purposes</span>
       </footer>
 
