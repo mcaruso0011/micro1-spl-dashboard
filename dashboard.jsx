@@ -846,6 +846,8 @@ export default function Dashboard() {
   const [importFile,      setImportFile]      = useState(null);
   const [importResult,    setImportResult]    = useState(null);
 
+  const [projectSort,    setProjectSort]    = useState({ key: null, dir: "asc" });
+
   // Data state (initialized from hardcoded constants, replaceable via import)
   const [experts,        setExperts]        = useState(EXPERTS);
   const [pipelineStages, setPipelineStages] = useState(PIPELINE_STAGES);
@@ -902,6 +904,43 @@ export default function Dashboard() {
     setSelectedExpert(null);
     setImportStage("success");
   }
+
+  const exportCSV = () => {
+    const today = new Date();
+    const headers = [
+      "project_name", "client_name", "domain", "deadline", "days_to_deadline",
+      "health_score", "health_status", "task_completion_pct", "avg_quality_score",
+      "projected_completion_date", "expert_count", "avg_expert_load",
+    ];
+    const rows = PROJECTS.map(p => {
+      const client = CLIENTS.find(c => c.client_id === p.client_id);
+      const { health_score, status } = computeHealthScore(p, PROJECTS);
+      const daysToDeadline = Math.round((new Date(p.deadline) - today) / 86400000);
+      const completionPct  = ((p.completed_tasks / p.target_task_count) * 100).toFixed(1);
+      const avgQuality     = (p.recent_quality_scores.reduce((a, b) => a + b, 0) / p.recent_quality_scores.length).toFixed(1);
+      const healthStatus   = status === "healthy" ? "Healthy" : status === "at-risk" ? "At Risk" : "Critical";
+      const dailyRate      = p.completed_tasks / p.elapsed_days;
+      const remaining      = p.target_task_count - p.completed_tasks;
+      const projectedDate  = dailyRate > 0
+        ? new Date(today.getTime() + (remaining / dailyRate) * 86400000).toISOString().split("T")[0]
+        : "N/A";
+      const loads    = p.assigned_expert_ids.map(eid =>
+        PROJECTS.filter(proj => proj.assigned_expert_ids.includes(eid)).length
+      );
+      const avgLoad  = (loads.reduce((a, b) => a + b, 0) / loads.length).toFixed(1);
+      return [
+        p.name, client?.name ?? "", p.domain, p.deadline, daysToDeadline,
+        health_score.toFixed(1), healthStatus, completionPct, avgQuality,
+        projectedDate, p.assigned_expert_ids.length, avgLoad,
+      ];
+    });
+    const csv  = [headers, ...rows].map(r => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url; a.download = "project-summary.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const filteredExperts = experts.filter(e =>
     e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -969,6 +1008,13 @@ export default function Dashboard() {
             {" · "}
             {currentTime.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
           </span>
+          <button onClick={exportCSV} style={{
+            padding: "7px 16px", fontSize: 12, fontWeight: 600, fontFamily: T.fontBody,
+            background: T.green + "22", color: T.green,
+            border: `1px solid ${T.green}44`, borderRadius: 8, cursor: "pointer",
+          }}>
+            Export CSV
+          </button>
           <button
             onClick={() => { setShowImportModal(true); setImportStage("upload"); }}
             style={{
@@ -1186,28 +1232,78 @@ export default function Dashboard() {
             </div>
 
             {/* Table */}
+            {(() => {
+              const SORT_COLS = [
+                { label: "Project",  key: "name" },
+                { label: "Client",   key: "client" },
+                { label: "Domain",   key: "domain" },
+                { label: "Health",   key: "health" },
+                { label: "Pace",     key: "pace" },
+                { label: "Quality",  key: "quality" },
+                { label: "Experts",  key: "experts" },
+                { label: "Deadline", key: "deadline" },
+                { label: "Status",   key: "status" },
+              ];
+              const sortedProjects = (() => {
+                const enriched = PROJECTS.map(p => {
+                  const { health_score, status, pace_score } = computeHealthScore(p, PROJECTS);
+                  const client = CLIENTS.find(c => c.client_id === p.client_id);
+                  const quality_avg = p.recent_quality_scores.reduce((a, b) => a + b, 0) / p.recent_quality_scores.length;
+                  const daysLeft = Math.ceil((new Date(p.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+                  return { ...p, health_score, status, pace_score, quality_avg, daysLeft, client };
+                });
+                if (!projectSort.key) return enriched;
+                return [...enriched].sort((a, b) => {
+                  const map = {
+                    name:     [a.name,                        b.name],
+                    client:   [a.client?.name ?? "",          b.client?.name ?? ""],
+                    domain:   [a.domain,                      b.domain],
+                    health:   [a.health_score,                b.health_score],
+                    pace:     [a.pace_score,                  b.pace_score],
+                    quality:  [a.quality_avg,                 b.quality_avg],
+                    experts:  [a.assigned_expert_ids.length,  b.assigned_expert_ids.length],
+                    deadline: [a.daysLeft,                    b.daysLeft],
+                    status:   [a.status,                      b.status],
+                  };
+                  const [va, vb] = map[projectSort.key];
+                  const d = projectSort.dir === "asc" ? 1 : -1;
+                  return va < vb ? -d : va > vb ? d : 0;
+                });
+              })();
+              return (
             <div style={{ background: T.cardBg, borderRadius: 14, border: `1px solid ${T.border}`, overflow: "hidden" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr>
-                    {["Project", "Client", "Domain", "Health", "Pace", "Quality", "Experts", "Deadline", "Status"].map(col => (
-                      <th key={col} style={{ padding: "12px 16px", fontSize: 11, color: T.textMuted,
-                        textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 500,
-                        textAlign: "left", borderBottom: `1px solid ${T.border}` }}>
-                        {col}
-                      </th>
-                    ))}
+                    {SORT_COLS.map(({ label, key }) => {
+                      const isActive = projectSort.key === key;
+                      const indicator = isActive ? (projectSort.dir === "asc" ? " ↑" : " ↓") : "";
+                      return (
+                        <th key={key}
+                          onClick={() => {
+                            setSelectedProject(null);
+                            setProjectSort(prev =>
+                              prev.key === key
+                                ? prev.dir === "asc" ? { key, dir: "desc" } : { key: null, dir: "asc" }
+                                : { key, dir: "asc" }
+                            );
+                          }}
+                          style={{
+                            padding: "12px 16px", fontSize: 11, textTransform: "uppercase",
+                            letterSpacing: "0.07em", fontWeight: 500, textAlign: "left",
+                            borderBottom: `1px solid ${T.border}`, cursor: "pointer", userSelect: "none",
+                            color: isActive ? T.textPrimary : T.textMuted,
+                            whiteSpace: "nowrap",
+                          }}>
+                          {label}{indicator}
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
-                  {PROJECTS.map(project => {
-                    const { health_score, status } = computeHealthScore(project, PROJECTS);
-                    const client = CLIENTS.find(c => c.client_id === project.client_id);
-                    const pace_score = Math.min(
-                      (project.completed_tasks / project.elapsed_days) / (project.target_task_count / project.total_days), 1
-                    ) * 100;
-                    const quality_avg = project.recent_quality_scores.reduce((a, b) => a + b, 0) / project.recent_quality_scores.length;
-                    const daysLeft = Math.ceil((new Date(project.deadline) - new Date()) / (1000 * 60 * 60 * 24));
+                  {sortedProjects.map(project => {
+                    const { health_score, status, pace_score, quality_avg, daysLeft, client } = project;
                     const statusColor = status === "healthy" ? T.green : status === "at-risk" ? T.amber : T.red;
                     const statusLabel = status === "healthy" ? "Healthy" : status === "at-risk" ? "At Risk" : "Critical";
                     const isSelected = selectedProject?.project_id === project.project_id;
@@ -1323,6 +1419,8 @@ export default function Dashboard() {
                 </tbody>
               </table>
             </div>
+              );
+            })()}
 
           </div>
         )}
