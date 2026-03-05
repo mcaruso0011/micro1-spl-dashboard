@@ -107,3 +107,13 @@ Format: `[YYYY-MM-DD] — [Decision] — [Reason / tradeoff]`
 [2026-03-03] — Batch progress bar color: green at 100%, amber if in progress, track color if 0% — 0% renders as an invisible fill (same color as track) rather than a colored sliver, which would falsely imply progress. Green only when fully complete — amber for any partial state.
 
 [2026-03-03] — Projects tab placed second in nav (after Overview) — It is the primary working view for the SPL; Overview is the quick-glance summary. Positioning reflects usage frequency: scan Overview first, then drill into Projects.
+
+[2026-03-03] — assigned_expert_ids array on PROJECTS used as v1 stand-in for ExpertProjectAssignment junction table — FOUNDATION.md specifies a full junction with assigned_date and role. For v1 synthetic data, a flat array of IDs is sufficient: it supports load computation, expert name lookup, and count display. Full junction promoted to v2 when role-level data (lead vs. contributor) needs to be surfaced.
+
+[2026-03-03] — Risk Alerts panel uses IIFE pattern (`{(() => { ... })()}`) to declare computed variables inline in JSX — React JSX cannot contain `const` declarations directly. IIFE is the idiomatic way to compute local variables (alertProjects, alertBadgeColor, alertBadgeLabel) and return JSX in a single expression, without adding new state or extracting a child component.
+
+[2026-03-03] — Reason string derived from largest sub-score gap (100 - score), not lowest absolute score — Comparing gaps rather than raw scores normalizes across components: a pace_score of 50 (gap 50) correctly outranks a load_score of 57.1 (gap 42.9) even though both are below 100. Sorting descending by gap and taking [0] is a one-liner that remains correct as the formula weights change.
+
+[2026-03-03] — Risk Alerts badge color follows severity hierarchy: red if any critical, amber if any at-risk, green if all clear — Badge communicates worst-case status at a glance. An at-risk project is not suppressed just because no project is critical. Green only when alertProjects.length === 0.
+
+[2026-03-03] — load_score reason string uses `(100 / load_score).toFixed(1)` to show avg projects per expert — load_score = 100 / avg_load, so inverting recovers the human-readable number (e.g., load_score 57.1 → avg 1.75 projects per person). This is the same inversion used implicitly in computeHealthScore; surfacing it in the reason string makes the metric legible without adding a new field.

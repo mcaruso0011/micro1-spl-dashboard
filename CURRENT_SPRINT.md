@@ -13,14 +13,14 @@
 ✅ 1a. Synthetic data layer      DONE — CLIENTS, PROJECTS, BATCHES, computeHealthScore
 ✅ 2a. Health Snapshot           DONE — Overview tab, 3 color-coded project cards
 ✅ 2b. Projects tab              DONE — full table + click-to-expand detail panels
-⬜ 3.  Risk alerts panel         NEXT — Overview tab section, computed from health score data
-⬜ 4.  Project switcher          after #3
-⬜ 5.  Column sorting            Friday
-⬜ 6.  CSV export                Friday
+✅ 3.  Risk alerts panel         DONE — Overview tab, between Health Snapshot and charts
+⬜ 4.  Project switcher          NEXT
+⬜ 5.  Column sorting            after #4
+⬜ 6.  CSV export                after #5
 ⬜ 7.  README polish + share     Weekend
 ```
 
-**Progress: 4 of 7 milestones — Projects tab complete, Risk Alerts panel is next**
+**Progress: 5 of 7 milestones — Risk Alerts panel complete, Project Switcher is next**
 
 ---
 
@@ -28,7 +28,7 @@
 
 Five-tab dashboard is built and running:
 - ✅ Overview tab — KPI cards, Health Snapshot (3 project cards), daily charts, pipeline funnel, activity feed
-- ✅ Projects tab — sortable table, health/pace/quality/deadline columns, click-to-expand batch + expert detail panels
+- ✅ Projects tab — table with health/pace/quality/deadline columns, click-to-expand batch + expert detail panels (sorting is feature #5)
 - ✅ Expert Roster tab — searchable table, trend % column, readiness score column, click-to-expand detail panel
 - ✅ Pipeline tab — funnel visualization, stage health cards, static notes section
 - ✅ Alerts tab — categorized alerts, acknowledge actions, timestamped log
@@ -38,7 +38,28 @@ Theme: warm cream/pastel light. Fonts: Instrument Sans + Fira Code. Design token
 
 ---
 
-## ✅ Completed This Session — Projects Tab (Step 2b)
+## ✅ Completed This Session — Risk Alerts Panel (Step 3)
+
+Risk Alerts panel added to Overview tab, between Health Snapshot cards and daily bar charts.
+
+- Scans all PROJECTS at render time via `computeHealthScore` — no new state
+- Filters to `status !== "healthy"` (at-risk + critical only)
+- Per-row reason string: computes gap from 100 for each sub-score (pace, quality, load), sorts descending, takes the worst — gives the single most actionable explanation
+- Header badge: red if any critical, amber if any at-risk, green if all clear
+- Empty state: green dot + "All projects healthy" when no alerts
+- Matched card style (borderRadius 14, padding 22) and badge pill style (`color + "1E"` alpha bg) from existing patterns
+- Author byline updated: "Mike K." → "Michael Caruso" in dashboard footer, preview footer, and README
+
+Expected output with current synthetic data:
+- Medical QA Sprint → At Risk (amber) → "Expert load: avg 1.8 projects per person"
+- Engineering Data Batch → Critical (red) → "Pace at 50% of required rate"
+- Badge reads "2 need attention" in red
+
+Both `dashboard.jsx` and `preview.html` updated in sync. Committed and pushed.
+
+---
+
+## ✅ Completed Previous Session — Projects Tab (Step 2b)
 
 **Bug fixed:** Health Snapshot was rendering blank project and client names because the implementation used `project.project_name` and `client.client_name` — the actual data fields are `.name` for both. Fixed in both `dashboard.jsx` and `preview.html`.
 
@@ -65,15 +86,12 @@ Expected table values (today ~2026-03-03):
 
 ---
 
-## Next Up — Step 3: Risk Alerts Panel
+## Next Up — Step 4: Project Switcher
 
-- Lives on the Overview tab as a dedicated section below the Health Snapshot
-- Surfaces only at-risk (🟡) and critical (🔴) projects
-- Each alert row: project name, client, status badge, one-line computed reason
-  - Reason = whichever health score component is dragging the score down most
-  - Example: "pace 50% of required rate" or "quality 13% below target"
-- No hardcoded strings — everything derived from PROJECTS + computeHealthScore
-- Does not require new state — pure render-time computation
+- Dropdown or tab control on the Overview tab to scope KPI cards and charts to a single project
+- Requires promoting PROJECTS to useState so selection can drive filtered views
+- Health Snapshot cards may become the selector (click a card → filters Overview)
+- Design TBD — align with Brains chat before building
 
 ---
 
@@ -91,6 +109,8 @@ Expected table values (today ~2026-03-03):
 - Pipeline Notes bottleneck analysis does not update when data changes — hardcoded text
 - No "see more" link from Overview activity feed to Alerts tab
 - README.md needs update once v1 features are complete
+- BATCHES is not wired to CSV import — after a CSV import, the Projects tab detail panel still shows synthetic batch data. Batch-level import requires adding batch columns to the import schema and a BATCHES parser in the import handler.
+- assigned_expert_ids on PROJECTS is not updated by CSV import either — expert panel in Projects tab detail will revert to synthetic expert IDs after import. Same fix scope as BATCHES.
 
 ---
 
