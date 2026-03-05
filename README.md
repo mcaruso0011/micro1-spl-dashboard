@@ -1,72 +1,54 @@
-# micro1 SPL Data Ops Dashboard
+# micro1 SPL Dashboard
 
-A working demo of a **Data Operations Quality Dashboard** — the kind of tool a Strategic Projects Lead at [micro1](https://micro1.ai) would use to manage expert teams, monitor training data quality, and optimize pipeline throughput for AI lab clients.
+A working demo of a data operations command center for managing AI training data projects at scale.
 
-## Why This Exists
+At companies like micro1, a Strategic Projects Lead coordinates teams of hundreds of domain experts — PhDs, lawyers, doctors, professors who produce the labeled data that frontier AI labs (OpenAI, Google, and others) use to train their models. The SPL owns quality, delivery, and expert performance across multiple simultaneous client projects. This dashboard is the tool that role needs: not a reporting view, but a decision-support surface that surfaces "this project is going to miss" before it misses — with enough context to act.
 
-Built as a demonstration for the **Strategic Projects Lead** role at micro1. Shows operational thinking about core SPL responsibilities:
+---
 
-- **Expert Performance Management** — tracking accuracy, velocity, readiness, and quality across a team of PhDs and domain experts
-- **Pipeline Health Monitoring** — visualizing task flow from ingestion → annotation → QA → AI QC → delivery
-- **Quality Metrics** — surfacing data integrity signals that matter for frontier model training
-- **Alert & Action System** — enabling fast response to bottlenecks and performance issues
+## What this demonstrates
 
-## Project Structure
+- **Outcome-first health scoring.** A composite health score (pace 40% + quality 40% + expert load 20%) weights the inputs that actually predict delivery failure. Pace and quality are the primary signals; load is a leading indicator surfaced separately so it can be interrogated, not buried in a black box.
 
-```
-micro1-spl-dashboard/
-├── dashboard.jsx          ← Main dashboard application
-├── preview.html           ← Zero-install browser preview
-├── CLAUDE.md              ← Claude Code directives and implementation rules
-├── FOUNDATION.md          ← Product spec, data model, architecture decisions
-├── DECISIONS.md           ← Full dated decision log
-├── CURRENT_SPRINT.md      ← Active work and open questions
-├── ROADMAP.md             ← Feature backlog
-├── RESEARCH.md            ← micro1 context and role research
-├── README.md              ← You are here
-└── CLAUDE_CODE_GUIDE.md   ← Beginner guide for using Claude Code
-```
+- **Separation of display logic from data model.** All derived fields — health score, pace, projected completion date, days to deadline, batch completion % — are computed at render time and never stored. The data model holds raw inputs only. This keeps the source of truth clean and makes it impossible for a stale cached value to contradict the display.
 
-## Tech Stack
+- **A validator that distinguishes blocking errors from judgment calls.** The CSV import modal runs a full validator before confirming: missing required fields and invalid enums block the import entirely; data quality warnings (completion dates after deadline, inconsistent expert domain tags, batch count mismatches) flag but allow. The distinction reflects how real ops data actually arrives — imperfect but usable.
 
-- **React** (single-file component, no build step needed)
-- **Inline styles** with centralized design tokens (`const T`)
-- **Fonts**: Instrument Sans + Fira Code (Google Fonts)
-- **No external dependencies** beyond React
+- **Risk visibility at the right layer of abstraction.** The Risk Alerts panel doesn't just show a red number — it identifies the single largest contributing gap (pace, quality, or load) and states it in plain language. The SPL doesn't need to decode a composite score; they need to know what to fix.
 
-## Quick Start
+- **Export designed for the actual workflow.** The CSV export produces one row per project with 12 columns including projected completion date and average expert load — structured to drop directly into Excel or Sheets for a client status update, not as raw data dump.
 
-Open `preview.html` directly in any browser — no npm, no build step, no setup.
+- **Progressive disclosure without modals.** Project and expert detail panels expand inline within their table rows. The full context (batches, assigned experts, load, SPL actions) is one click away without navigating away from the list view.
 
-To continue building with Claude Code:
-1. Open Claude Code in your terminal
-2. Read `CLAUDE_CODE_GUIDE.md` for step-by-step instructions
-3. Pick a feature from `CURRENT_SPRINT.md` or `ROADMAP.md`
+---
 
-## Current Features
+## Features
 
-### Overview Tab
-- KPI cards: total tasks, average accuracy, task time, active experts
-- Daily task volume and quality score charts
-- Pipeline funnel visualization
-- Recent activity feed (top 3 alerts)
+1. **Health Snapshot** — color-coded project cards on the Overview tab with health score, status badge, and days to deadline
+2. **Risk Alerts panel** — surfaces at-risk and critical projects with a plain-language reason string derived from the worst sub-score gap
+3. **Projects tab** — 9-column table with sortable headers; click any header to sort asc/desc/reset; expanding a row shows batch progress bars and assigned expert load
+4. **Expert Roster** — searchable table with accuracy, trend %, and a composite readiness score; experts in review status are hard-capped at 70 regardless of raw score
+5. **CSV import** — drag-and-drop upload with a full validation pass (errors block, warnings flag) before a one-click confirm that replaces all dashboard data
+6. **CSV export** — downloads a 12-column project summary including projected completion date, health status, and average expert load
 
-### Expert Roster Tab
-- Searchable expert table with status, domain, performance metrics
-- Trend % column (week-over-week accuracy delta)
-- Readiness score column (composite 0–100%, color-coded)
-- Click-to-expand detail panel with SPL action buttons
+---
 
-### Pipeline Tab
-- Task flow funnel with throughput percentages
-- Stage-by-stage health cards with error counts
-- Color-coded stage health (blue→lavender healthy, amber→red degraded)
+## How to run it
 
-### Alerts Tab
-- Categorized alerts (warning, info, success)
-- Acknowledge actions
-- Timestamped activity log
+Open `preview.html` in any browser. No npm, no build step, no setup.
 
-## Author
+---
 
-**Michael Caruso** — Built as part of exploring the Strategic Projects Lead role at micro1.
+## Tech decisions
+
+**Derived fields are computed, never stored.** Health score, pace, projected dates, and expert load are all calculated fresh at render time from raw inputs. This is the correct model for a monitoring tool: there is no sync problem, no stale cache, and no way for a displayed value to contradict the underlying data.
+
+**Single enrichment pass before sort.** When sorting the Projects table, each project is enriched with all derived fields once before the comparator runs. The sort key and the row cells read from the same pre-computed object — `computeHealthScore` is called once per project per render regardless of sort state.
+
+**Import validator uses a two-tier error model.** Hard errors block the import; soft warnings surface for review but allow the import to proceed. This matches real operational data: a missing required field is a data integrity failure; a completion date that slips past a deadline is a flag worth knowing, not a reason to reject the file.
+
+**`{ key, dir }` sort state stored as one atomic object, not two `useState` values.** A single object update is atomic — there is no render between setting the key and setting the direction. Two separate state values would allow a transient render with a mismatched key/direction pair.
+
+---
+
+**Michael Caruso** — Built for the Strategic Projects Lead role at micro1.
