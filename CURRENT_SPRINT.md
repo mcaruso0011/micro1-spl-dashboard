@@ -14,13 +14,13 @@
 ✅ 2a. Health Snapshot           DONE — Overview tab, 3 color-coded project cards
 ✅ 2b. Projects tab              DONE — full table + click-to-expand detail panels
 ✅ 3.  Risk alerts panel         DONE — Overview tab, between Health Snapshot and charts
-⬜ 4.  Project switcher          NEXT
-⬜ 5.  Column sorting            after #4
-⬜ 6.  CSV export                after #5
-⬜ 7.  README polish + share     Weekend
+⬜ 4.  Project switcher          SKIPPED — Health Snapshot + Projects tab already cover this need
+✅ 5.  Column sorting            DONE — all 9 columns, 3-click cycle, clears detail panel
+✅ 6.  CSV export                DONE — 12-column project summary, sage green button in header
+⬜ 7.  README polish + share     NEXT
 ```
 
-**Progress: 5 of 7 milestones — Risk Alerts panel complete, Project Switcher is next**
+**Progress: 6 of 7 milestones — Column sorting + CSV export complete. Only README polish remains.**
 
 ---
 
@@ -38,7 +38,29 @@ Theme: warm cream/pastel light. Fonts: Instrument Sans + Fira Code. Design token
 
 ---
 
-## ✅ Completed This Session — Risk Alerts Panel (Step 3)
+## ✅ Completed This Session — Column Sorting + CSV Export (Steps 5 & 6)
+
+**Column sorting — Projects tab**
+- `projectSort` state: `{ key: null, dir: "asc" }` — single atomic object, not two separate values
+- `SORT_COLS` array of `{ label, key }` replaces the static string array for all 9 headers
+- `sortedProjects` IIFE: enriches all projects with derived fields in one pass (health, pace, quality, daysLeft, client), then sorts — same object used by both comparator and row render, so `computeHealthScore` is called once per project per render, not twice
+- Click cycles: default → asc (↑) → desc (↓) → default (key=null restores PROJECTS insertion order)
+- Any sort click clears `selectedProject` — prevents the detail panel from floating under a row that has moved
+- Column headers get `cursor: pointer`, `userSelect: none`, `whiteSpace: nowrap`, and color shifts to `T.textPrimary` when active
+
+**CSV export**
+- `exportCSV` function: pure computation, no state, no side effects beyond the download
+- 12 columns: project_name, client_name, domain, deadline, days_to_deadline, health_score, health_status, task_completion_pct, avg_quality_score, projected_completion_date, expert_count, avg_expert_load
+- Projected completion date derived from `dailyRate = completed_tasks / elapsed_days`; falls back to "N/A" if rate is 0
+- Avg expert load is mean of per-expert project counts (human-readable), not the internal load_score
+- Download via Blob + URL.createObjectURL + programmatic anchor click; URL revoked immediately
+- "Export CSV" button: sage green (`T.green`) in header, left of "Import CSV" (lavender) — color distinguishes outbound from inbound
+
+Both `dashboard.jsx` and `preview.html` updated in sync. Verified in browser. Committed as `45d5a00`.
+
+---
+
+## ✅ Completed Previous Session — Risk Alerts Panel (Step 3)
 
 Risk Alerts panel added to Overview tab, between Health Snapshot cards and daily bar charts.
 
@@ -86,12 +108,12 @@ Expected table values (today ~2026-03-03):
 
 ---
 
-## Next Up — Step 4: Project Switcher
+## Next Up — Step 7: README Polish + Share
 
-- Dropdown or tab control on the Overview tab to scope KPI cards and charts to a single project
-- Requires promoting PROJECTS to useState so selection can drive filtered views
-- Health Snapshot cards may become the selector (click a card → filters Overview)
-- Design TBD — align with Brains chat before building
+- Update README.md: reflect all 6 completed features, current tab inventory, how to open preview.html
+- Add a short "what this demos" paragraph aimed at a hiring audience
+- Consider adding a screenshot or gif (optional)
+- Once README is done, v1 is shareable
 
 ---
 

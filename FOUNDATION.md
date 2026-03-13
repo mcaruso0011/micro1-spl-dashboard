@@ -29,11 +29,26 @@ Four views, no more:
 
 ## Roadmap (Not v1)
 
+### v2 Features
+
 - **Predictive delivery scoring:** Probability of on-time delivery as a percentage, using expert velocity baselines, pace trend, and days remaining. Data model is designed to support this now — requires timestamped task completion event history.
 - **Expert load in health score:** Currently surfaced as a visible data point. In v2, incorporate into composite with explainability tooltip showing the math.
 - **Direct API integrations:** Jira, Airtable, Notion. v1 uses CSV import. Integrations layer on top of the same data model.
 - **Client-facing dashboard view:** Filtered, read-only view for client stakeholders.
 - **Confidence intervals on projections:** Layer statistical ranges onto pace projections once enough historical velocity data exists.
+- **Expert sentiment signal:** A weekly pulse score (1–5, self-reported) averaged per project and surfaced alongside the health score. Low sentiment triggers closer quality review routing — not reduced work access. If a project is green on health but red on sentiment, that's an early warning that pace is being maintained at a human cost. *Important design constraint: sentiment is a routing signal only, never a work restriction. Restricting access based on self-reported emotional state creates incentives to game the score, destroying the signal's integrity.*
+- **Outcome logging:** When a project closes, log whether it was on time, over deadline, or under quality threshold. This historical record is what eventually enables health score weight calibration against real outcomes.
+- **Health score weight configurability:** A settings panel where the SPL can adjust the Pace/Quality/Load weighting and see how the score distribution changes across current projects. Enables empirical tuning once outcome data exists.
+
+### A Note on Health Score Validation (The Intervention Paradox)
+
+If the health score works as intended, SPLs will always intervene when a project turns red — which means failed projects become rare, making it hard to validate whether the score actually predicted failure or just created busy work. This is a known measurement challenge.
+
+The long-term solution is counterfactual tracking: log every at-risk flag, what intervention was taken, and the outcome. Cases where flags were ignored (by accident or capacity constraints) become ground truth for validating predictive accuracy. Meaningful validation requires months of real operational data and is out of scope for v1 and v2, but the outcome logging feature above is the prerequisite.
+
+### Future Consideration — Pre-Work Readiness Gate
+
+A sentiment check before a work session begins ("how are you feeling today, 1–5") that routes low-sentiment output to closer review. Not a priority feature and needs more design work before it's ready to build. Key open question: how to prevent gaming once experts understand the routing implications. Worth revisiting if the weekly sentiment signal proves useful and trustworthy.
 
 ---
 

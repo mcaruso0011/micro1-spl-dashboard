@@ -117,3 +117,21 @@ Format: `[YYYY-MM-DD] — [Decision] — [Reason / tradeoff]`
 [2026-03-03] — Risk Alerts badge color follows severity hierarchy: red if any critical, amber if any at-risk, green if all clear — Badge communicates worst-case status at a glance. An at-risk project is not suppressed just because no project is critical. Green only when alertProjects.length === 0.
 
 [2026-03-03] — load_score reason string uses `(100 / load_score).toFixed(1)` to show avg projects per expert — load_score = 100 / avg_load, so inverting recovers the human-readable number (e.g., load_score 57.1 → avg 1.75 projects per person). This is the same inversion used implicitly in computeHealthScore; surfacing it in the reason string makes the metric legible without adding a new field.
+
+[2026-03-04] — Column sort state stored as `{ key, dir }` object, not two separate useState values — A single object keeps the key and direction atomically consistent; two separate state values would allow a render between setting key and setting dir, producing a transient mis-sort.
+
+[2026-03-04] — `sortedProjects` computed inside an IIFE in the Projects tab block, not in the main component body — Same IIFE pattern already established for Risk Alerts. Keeps derived logic co-located with its consumer. No new state introduced; derived array is recomputed on every render from PROJECTS + projectSort.
+
+[2026-03-04] — `sortedProjects` IIFE enriches each project with all derived fields before sorting — Avoids calling `computeHealthScore` twice per row (once for sort, once for render). Single enrichment pass means the sort comparator and the row JSX read from the same object.
+
+[2026-03-04] — Clicking any sort header clears `selectedProject` — Without this, the detail panel would remain visually expanded below a row that has moved to a different position, creating a confusing layout. Selection clear is the simplest fix and matches standard table sort behavior.
+
+[2026-03-04] — Sort cycles default → asc → desc → default (key=null resets) — Three-click cycle lets the user return to the canonical PROJECTS insertion order. key=null is the sentinel; the enriched array is returned unsorted when key is null.
+
+[2026-03-04] — CSV export uses Blob + URL.createObjectURL + programmatic anchor click — Standard browser-native technique; no external library. URL is immediately revoked after click to avoid memory leak.
+
+[2026-03-04] — Export computes projected completion date from dailyRate and remaining tasks — `dailyRate = completed_tasks / elapsed_days`; `remaining = target_task_count - completed_tasks`; projected date = today + (remaining / dailyRate) days. Falls back to "N/A" if dailyRate is 0 to avoid Infinity/NaN in the CSV.
+
+[2026-03-04] — Export avg expert load computed per-project as mean of per-expert project counts — Same formula as load_score numerator in computeHealthScore, but expressed as a raw average rather than a score. Gives the CSV consumer the human-readable number (e.g., "1.8") rather than the internal score (e.g., "57.1").
+
+[2026-03-04] — Export button styled with T.green to visually distinguish it from Import (T.lavender) — Both are pill buttons in the header. Different accent colors signal different action types at a glance: green = outbound data, lavender = inbound data.
