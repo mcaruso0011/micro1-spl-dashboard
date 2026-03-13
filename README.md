@@ -4,6 +4,8 @@ A working demo of a data operations command center for managing AI training data
 
 At companies like micro1, a Strategic Projects Lead coordinates teams of hundreds of domain experts — PhDs, lawyers, doctors, professors who produce the labeled data that frontier AI labs (OpenAI, Google, and others) use to train their models. The SPL owns quality, delivery, and expert performance across multiple simultaneous client projects. This dashboard is the tool that role needs: not a reporting view, but a decision-support surface that surfaces "this project is going to miss" before it misses — with enough context to act.
 
+![Dashboard preview](dashboard-preview.png)
+
 ---
 
 ## What this demonstrates
