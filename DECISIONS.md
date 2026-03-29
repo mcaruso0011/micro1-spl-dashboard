@@ -79,3 +79,19 @@ Format: `[YYYY-MM-DD] — [Decision] — [Reason / tradeoff]`
 [2026-03-29] — Import validator extended with context-level warnings — In addition to field-level errors and warnings, a third tier of dataset-level context checks added: project ID reconciliation, expert name fuzzy matching, date range sanity check, and volume anomaly detection. These catch "wrong dataset uploaded" scenarios before data goes live.
 
 [2026-03-29] — IRR threshold documented as 0.8 with client/task-type variability noted — 0.8 is the widely used convention but legal annotation may demand 0.9+, subjective tasks may accept 0.75. SPL would negotiate thresholds with each client at project setup. Dashboard threshold line is configurable per QA_ThresholdConfig in the data model.
+
+[2026-03-29] — E-009 (Dr. Priya Nair) accuracy set to 91.5% deliberately — High enough to avoid triggering v1 expert review flags, low enough to be plausible for a drifting expert. The drift story only becomes visible in IRR week-over-week and gold standard data; surface accuracy is misleading by design. Same principle: trend "down" + trendPct 3.8 gives a faint hint in the Expert Roster but doesn't scream crisis.
+
+[2026-03-29] — E-010 (James Okafor) accuracy set to 88.0% and status "active" — Borderline acceptable overall accuracy that looks manageable. Status stays "active" (not "review") because the calibration problem is invisible in v1 metrics — that's the product point. The gold standard layer is what catches it.
+
+[2026-03-29] — E-010 name collision with E-002 ("Prof. James Okafor") is intentional — Different ID (E-010 vs E-002), domain (Law vs Physics), and university (Columbia vs MIT) distinguish them unambiguously in the data. The name similarity is a deliberate design choice: common names exist in the real world, and the system should route by expert_id, not name string.
+
+[2026-03-29] — IRR_RECORDS structured as 8 pairings × 8 weeks = 64 records — Three pairings for Nair (showing the drift), three for Okafor (showing erratic agreement), two control pairs (Chen+Volkov, Sharma+Al-Hassan, showing healthy consistent IRR). Control group is critical: without it, the charts have no baseline to compare against. 64 records is well over the 40-record minimum needed to make time-series charts readable.
+
+[2026-03-29] — Nair IRR drop engineered to be visible only in weeks 7–8, not earlier — Weeks 1–6 scores stay 0.83–0.87 across all three pairings. Weeks 7–8 drop to 0.71–0.74. The story is: the weekly average would have looked fine until recently. This tests whether the drift visualization actually surfaces a late-breaking problem that overall averages would mask.
+
+[2026-03-29] — Okafor IRR scores are erratic across all 8 weeks, not a clean drop — Scores swing 0.65–0.89 with no stable trend. This is a different failure mode than Nair's drift — it suggests inconsistent calibration to the annotation rubric, not a recent decline. The gold standard data (avg 0.70) tells the definitive story; IRR just shows the symptom.
+
+[2026-03-29] — GOLD_STANDARD_RESULTS limited to 6 experts, not all 10 — Only experts relevant to the QA stories (E-009, E-010) plus four healthy controls (E-001, E-003, E-005, E-007) complete the gold standard items. Adding all 10 experts adds noise without adding story. The control group gives the SPL a visual reference for what passing looks like.
+
+[2026-03-29] — `correct_output` field on GOLD_STANDARD_ITEMS uses full annotation strings — Brief but specific: "Flag as informed consent violation — patient signature predates disclosure document." Real enough to demonstrate that gold standard items are domain-specific, not generic. Not so verbose that they dominate the data file.

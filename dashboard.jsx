@@ -135,6 +135,9 @@ const EXPERTS = [
   { id: "E-006", name: "Dr. Marcus Kim",       domain: "Law",         university: "Harvard",       rating: 4.5, tasksCompleted: 156, avgTime: 35, accuracy: 91.4, status: "review", trend: "down",   trendPct: 3.2 },
   { id: "E-007", name: "Dr. Fatima Al-Hassan", domain: "Chemistry",   university: "Caltech",       rating: 4.8, tasksCompleted: 267, avgTime: 24, accuracy: 96.7, status: "active", trend: "stable", trendPct: 0.2 },
   { id: "E-008", name: "Prof. David Tanaka",   domain: "Economics",   university: "Princeton",     rating: 4.7, tasksCompleted: 321, avgTime: 28, accuracy: 94.5, status: "active", trend: "up",     trendPct: 1.4 },
+  // v2 QA Governance experts — added for IRR + gold standard stories
+  { id: "E-009", name: "Dr. Priya Nair",      domain: "Medicine",    university: "UCSF",          rating: 4.6, tasksCompleted: 178, avgTime: 27, accuracy: 91.5, status: "active", trend: "down",   trendPct: 3.8 },
+  { id: "E-010", name: "James Okafor",        domain: "Law",         university: "Columbia",      rating: 4.4, tasksCompleted: 124, avgTime: 33, accuracy: 88.0, status: "active", trend: "stable", trendPct: 0.5 },
 ];
 
 const PIPELINE_STAGES = [
@@ -224,6 +227,182 @@ const QUALITY_FIELDS       = ["client_quality_threshold", "project_target_qualit
 const VALID_DOMAINS        = ["legal", "medical", "financial", "engineering"];
 const VALID_TASK_STATUSES  = ["unassigned", "in-progress", "in-review", "completed"];
 const VALID_SENIORITIES    = ["junior", "mid", "senior", "principal"];
+
+// ============================================================
+// QA GOVERNANCE DATA (v2)
+// ============================================================
+
+const IRR_RECORDS = [
+  // --- Nair (E-009) + Sharma (E-003) | medical-annotation | weeks 1–8 ---
+  // Weeks 1–6: healthy range (0.83–0.87). Weeks 7–8: drop to 0.71–0.73.
+  { irr_id: "IRR-001", expert_a_id: "E-009", expert_b_id: "E-003", agreement_score: 0.86, task_type: "medical-annotation", week_number: 1, date_recorded: "2026-01-06" },
+  { irr_id: "IRR-002", expert_a_id: "E-009", expert_b_id: "E-003", agreement_score: 0.85, task_type: "medical-annotation", week_number: 2, date_recorded: "2026-01-13" },
+  { irr_id: "IRR-003", expert_a_id: "E-009", expert_b_id: "E-003", agreement_score: 0.87, task_type: "medical-annotation", week_number: 3, date_recorded: "2026-01-20" },
+  { irr_id: "IRR-004", expert_a_id: "E-009", expert_b_id: "E-003", agreement_score: 0.84, task_type: "medical-annotation", week_number: 4, date_recorded: "2026-01-27" },
+  { irr_id: "IRR-005", expert_a_id: "E-009", expert_b_id: "E-003", agreement_score: 0.86, task_type: "medical-annotation", week_number: 5, date_recorded: "2026-02-03" },
+  { irr_id: "IRR-006", expert_a_id: "E-009", expert_b_id: "E-003", agreement_score: 0.83, task_type: "medical-annotation", week_number: 6, date_recorded: "2026-02-10" },
+  { irr_id: "IRR-007", expert_a_id: "E-009", expert_b_id: "E-003", agreement_score: 0.73, task_type: "medical-annotation", week_number: 7, date_recorded: "2026-02-17" },
+  { irr_id: "IRR-008", expert_a_id: "E-009", expert_b_id: "E-003", agreement_score: 0.71, task_type: "medical-annotation", week_number: 8, date_recorded: "2026-02-24" },
+
+  // --- Nair (E-009) + Al-Hassan (E-007) | scientific-qa | weeks 1–8 ---
+  { irr_id: "IRR-009", expert_a_id: "E-009", expert_b_id: "E-007", agreement_score: 0.84, task_type: "scientific-qa", week_number: 1, date_recorded: "2026-01-06" },
+  { irr_id: "IRR-010", expert_a_id: "E-009", expert_b_id: "E-007", agreement_score: 0.86, task_type: "scientific-qa", week_number: 2, date_recorded: "2026-01-13" },
+  { irr_id: "IRR-011", expert_a_id: "E-009", expert_b_id: "E-007", agreement_score: 0.83, task_type: "scientific-qa", week_number: 3, date_recorded: "2026-01-20" },
+  { irr_id: "IRR-012", expert_a_id: "E-009", expert_b_id: "E-007", agreement_score: 0.85, task_type: "scientific-qa", week_number: 4, date_recorded: "2026-01-27" },
+  { irr_id: "IRR-013", expert_a_id: "E-009", expert_b_id: "E-007", agreement_score: 0.84, task_type: "scientific-qa", week_number: 5, date_recorded: "2026-02-03" },
+  { irr_id: "IRR-014", expert_a_id: "E-009", expert_b_id: "E-007", agreement_score: 0.87, task_type: "scientific-qa", week_number: 6, date_recorded: "2026-02-10" },
+  { irr_id: "IRR-015", expert_a_id: "E-009", expert_b_id: "E-007", agreement_score: 0.72, task_type: "scientific-qa", week_number: 7, date_recorded: "2026-02-17" },
+  { irr_id: "IRR-016", expert_a_id: "E-009", expert_b_id: "E-007", agreement_score: 0.74, task_type: "scientific-qa", week_number: 8, date_recorded: "2026-02-24" },
+
+  // --- Nair (E-009) + Chen (E-001) | medical-annotation | weeks 1–8 ---
+  { irr_id: "IRR-017", expert_a_id: "E-009", expert_b_id: "E-001", agreement_score: 0.85, task_type: "medical-annotation", week_number: 1, date_recorded: "2026-01-06" },
+  { irr_id: "IRR-018", expert_a_id: "E-009", expert_b_id: "E-001", agreement_score: 0.83, task_type: "medical-annotation", week_number: 2, date_recorded: "2026-01-13" },
+  { irr_id: "IRR-019", expert_a_id: "E-009", expert_b_id: "E-001", agreement_score: 0.86, task_type: "medical-annotation", week_number: 3, date_recorded: "2026-01-20" },
+  { irr_id: "IRR-020", expert_a_id: "E-009", expert_b_id: "E-001", agreement_score: 0.84, task_type: "medical-annotation", week_number: 4, date_recorded: "2026-01-27" },
+  { irr_id: "IRR-021", expert_a_id: "E-009", expert_b_id: "E-001", agreement_score: 0.83, task_type: "medical-annotation", week_number: 5, date_recorded: "2026-02-03" },
+  { irr_id: "IRR-022", expert_a_id: "E-009", expert_b_id: "E-001", agreement_score: 0.85, task_type: "medical-annotation", week_number: 6, date_recorded: "2026-02-10" },
+  { irr_id: "IRR-023", expert_a_id: "E-009", expert_b_id: "E-001", agreement_score: 0.74, task_type: "medical-annotation", week_number: 7, date_recorded: "2026-02-17" },
+  { irr_id: "IRR-024", expert_a_id: "E-009", expert_b_id: "E-001", agreement_score: 0.71, task_type: "medical-annotation", week_number: 8, date_recorded: "2026-02-24" },
+
+  // --- Okafor (E-010) + Kim (E-006) | legal-review | weeks 1–8 (erratic) ---
+  { irr_id: "IRR-025", expert_a_id: "E-010", expert_b_id: "E-006", agreement_score: 0.78, task_type: "legal-review", week_number: 1, date_recorded: "2026-01-06" },
+  { irr_id: "IRR-026", expert_a_id: "E-010", expert_b_id: "E-006", agreement_score: 0.89, task_type: "legal-review", week_number: 2, date_recorded: "2026-01-13" },
+  { irr_id: "IRR-027", expert_a_id: "E-010", expert_b_id: "E-006", agreement_score: 0.67, task_type: "legal-review", week_number: 3, date_recorded: "2026-01-20" },
+  { irr_id: "IRR-028", expert_a_id: "E-010", expert_b_id: "E-006", agreement_score: 0.82, task_type: "legal-review", week_number: 4, date_recorded: "2026-01-27" },
+  { irr_id: "IRR-029", expert_a_id: "E-010", expert_b_id: "E-006", agreement_score: 0.65, task_type: "legal-review", week_number: 5, date_recorded: "2026-02-03" },
+  { irr_id: "IRR-030", expert_a_id: "E-010", expert_b_id: "E-006", agreement_score: 0.88, task_type: "legal-review", week_number: 6, date_recorded: "2026-02-10" },
+  { irr_id: "IRR-031", expert_a_id: "E-010", expert_b_id: "E-006", agreement_score: 0.72, task_type: "legal-review", week_number: 7, date_recorded: "2026-02-17" },
+  { irr_id: "IRR-032", expert_a_id: "E-010", expert_b_id: "E-006", agreement_score: 0.68, task_type: "legal-review", week_number: 8, date_recorded: "2026-02-24" },
+
+  // --- Okafor (E-010) + Chen (E-001) | scientific-qa | weeks 1–8 (erratic) ---
+  { irr_id: "IRR-033", expert_a_id: "E-010", expert_b_id: "E-001", agreement_score: 0.72, task_type: "scientific-qa", week_number: 1, date_recorded: "2026-01-06" },
+  { irr_id: "IRR-034", expert_a_id: "E-010", expert_b_id: "E-001", agreement_score: 0.65, task_type: "scientific-qa", week_number: 2, date_recorded: "2026-01-13" },
+  { irr_id: "IRR-035", expert_a_id: "E-010", expert_b_id: "E-001", agreement_score: 0.85, task_type: "scientific-qa", week_number: 3, date_recorded: "2026-01-20" },
+  { irr_id: "IRR-036", expert_a_id: "E-010", expert_b_id: "E-001", agreement_score: 0.69, task_type: "scientific-qa", week_number: 4, date_recorded: "2026-01-27" },
+  { irr_id: "IRR-037", expert_a_id: "E-010", expert_b_id: "E-001", agreement_score: 0.88, task_type: "scientific-qa", week_number: 5, date_recorded: "2026-02-03" },
+  { irr_id: "IRR-038", expert_a_id: "E-010", expert_b_id: "E-001", agreement_score: 0.70, task_type: "scientific-qa", week_number: 6, date_recorded: "2026-02-10" },
+  { irr_id: "IRR-039", expert_a_id: "E-010", expert_b_id: "E-001", agreement_score: 0.67, task_type: "scientific-qa", week_number: 7, date_recorded: "2026-02-17" },
+  { irr_id: "IRR-040", expert_a_id: "E-010", expert_b_id: "E-001", agreement_score: 0.79, task_type: "scientific-qa", week_number: 8, date_recorded: "2026-02-24" },
+
+  // --- Okafor (E-010) + Volkov (E-005) | legal-review | weeks 1–8 (erratic) ---
+  { irr_id: "IRR-041", expert_a_id: "E-010", expert_b_id: "E-005", agreement_score: 0.80, task_type: "legal-review", week_number: 1, date_recorded: "2026-01-06" },
+  { irr_id: "IRR-042", expert_a_id: "E-010", expert_b_id: "E-005", agreement_score: 0.68, task_type: "legal-review", week_number: 2, date_recorded: "2026-01-13" },
+  { irr_id: "IRR-043", expert_a_id: "E-010", expert_b_id: "E-005", agreement_score: 0.75, task_type: "legal-review", week_number: 3, date_recorded: "2026-01-20" },
+  { irr_id: "IRR-044", expert_a_id: "E-010", expert_b_id: "E-005", agreement_score: 0.65, task_type: "legal-review", week_number: 4, date_recorded: "2026-01-27" },
+  { irr_id: "IRR-045", expert_a_id: "E-010", expert_b_id: "E-005", agreement_score: 0.83, task_type: "legal-review", week_number: 5, date_recorded: "2026-02-03" },
+  { irr_id: "IRR-046", expert_a_id: "E-010", expert_b_id: "E-005", agreement_score: 0.70, task_type: "legal-review", week_number: 6, date_recorded: "2026-02-10" },
+  { irr_id: "IRR-047", expert_a_id: "E-010", expert_b_id: "E-005", agreement_score: 0.66, task_type: "legal-review", week_number: 7, date_recorded: "2026-02-17" },
+  { irr_id: "IRR-048", expert_a_id: "E-010", expert_b_id: "E-005", agreement_score: 0.73, task_type: "legal-review", week_number: 8, date_recorded: "2026-02-24" },
+
+  // --- Chen (E-001) + Volkov (E-005) | scientific-qa | weeks 1–8 (control — healthy) ---
+  { irr_id: "IRR-049", expert_a_id: "E-001", expert_b_id: "E-005", agreement_score: 0.91, task_type: "scientific-qa", week_number: 1, date_recorded: "2026-01-06" },
+  { irr_id: "IRR-050", expert_a_id: "E-001", expert_b_id: "E-005", agreement_score: 0.89, task_type: "scientific-qa", week_number: 2, date_recorded: "2026-01-13" },
+  { irr_id: "IRR-051", expert_a_id: "E-001", expert_b_id: "E-005", agreement_score: 0.92, task_type: "scientific-qa", week_number: 3, date_recorded: "2026-01-20" },
+  { irr_id: "IRR-052", expert_a_id: "E-001", expert_b_id: "E-005", agreement_score: 0.90, task_type: "scientific-qa", week_number: 4, date_recorded: "2026-01-27" },
+  { irr_id: "IRR-053", expert_a_id: "E-001", expert_b_id: "E-005", agreement_score: 0.91, task_type: "scientific-qa", week_number: 5, date_recorded: "2026-02-03" },
+  { irr_id: "IRR-054", expert_a_id: "E-001", expert_b_id: "E-005", agreement_score: 0.93, task_type: "scientific-qa", week_number: 6, date_recorded: "2026-02-10" },
+  { irr_id: "IRR-055", expert_a_id: "E-001", expert_b_id: "E-005", agreement_score: 0.90, task_type: "scientific-qa", week_number: 7, date_recorded: "2026-02-17" },
+  { irr_id: "IRR-056", expert_a_id: "E-001", expert_b_id: "E-005", agreement_score: 0.92, task_type: "scientific-qa", week_number: 8, date_recorded: "2026-02-24" },
+
+  // --- Sharma (E-003) + Al-Hassan (E-007) | medical-annotation | weeks 1–8 (control — healthy) ---
+  { irr_id: "IRR-057", expert_a_id: "E-003", expert_b_id: "E-007", agreement_score: 0.88, task_type: "medical-annotation", week_number: 1, date_recorded: "2026-01-06" },
+  { irr_id: "IRR-058", expert_a_id: "E-003", expert_b_id: "E-007", agreement_score: 0.90, task_type: "medical-annotation", week_number: 2, date_recorded: "2026-01-13" },
+  { irr_id: "IRR-059", expert_a_id: "E-003", expert_b_id: "E-007", agreement_score: 0.87, task_type: "medical-annotation", week_number: 3, date_recorded: "2026-01-20" },
+  { irr_id: "IRR-060", expert_a_id: "E-003", expert_b_id: "E-007", agreement_score: 0.89, task_type: "medical-annotation", week_number: 4, date_recorded: "2026-01-27" },
+  { irr_id: "IRR-061", expert_a_id: "E-003", expert_b_id: "E-007", agreement_score: 0.91, task_type: "medical-annotation", week_number: 5, date_recorded: "2026-02-03" },
+  { irr_id: "IRR-062", expert_a_id: "E-003", expert_b_id: "E-007", agreement_score: 0.88, task_type: "medical-annotation", week_number: 6, date_recorded: "2026-02-10" },
+  { irr_id: "IRR-063", expert_a_id: "E-003", expert_b_id: "E-007", agreement_score: 0.90, task_type: "medical-annotation", week_number: 7, date_recorded: "2026-02-17" },
+  { irr_id: "IRR-064", expert_a_id: "E-003", expert_b_id: "E-007", agreement_score: 0.89, task_type: "medical-annotation", week_number: 8, date_recorded: "2026-02-24" },
+];
+
+const GOLD_STANDARD_ITEMS = [
+  // Medical domain (GS-001 – GS-005)
+  { gs_item_id: "GS-001", task_id: "T-GS-001", correct_output: "Flag as informed consent violation — patient signature predates disclosure document", domain: "medical", date_created: "2026-01-05" },
+  { gs_item_id: "GS-002", task_id: "T-GS-002", correct_output: "Annotate as contraindication — concurrent SSRI use with listed MAOIs", domain: "medical", date_created: "2026-01-05" },
+  { gs_item_id: "GS-003", task_id: "T-GS-003", correct_output: "Label as adverse event report — causality rating 'probable' per WHO-UMC scale", domain: "medical", date_created: "2026-01-08" },
+  { gs_item_id: "GS-004", task_id: "T-GS-004", correct_output: "Classify as off-label use — indication not listed in current FDA approval", domain: "medical", date_created: "2026-01-08" },
+  { gs_item_id: "GS-005", task_id: "T-GS-005", correct_output: "Mark as incomplete discharge summary — missing follow-up plan and medication reconciliation", domain: "medical", date_created: "2026-01-10" },
+  // Legal domain (GS-006 – GS-010)
+  { gs_item_id: "GS-006", task_id: "T-GS-006", correct_output: "Classify clause as unenforceable — unconscionable terms under UCC § 2-302", domain: "legal", date_created: "2026-01-10" },
+  { gs_item_id: "GS-007", task_id: "T-GS-007", correct_output: "Flag as material misrepresentation — omitted known defect in property disclosure", domain: "legal", date_created: "2026-01-12" },
+  { gs_item_id: "GS-008", task_id: "T-GS-008", correct_output: "Label as breach of fiduciary duty — self-dealing transaction without board disclosure", domain: "legal", date_created: "2026-01-12" },
+  { gs_item_id: "GS-009", task_id: "T-GS-009", correct_output: "Annotate as ambiguous jurisdiction clause — forum selection conflicts with mandatory venue statute", domain: "legal", date_created: "2026-01-15" },
+  { gs_item_id: "GS-010", task_id: "T-GS-010", correct_output: "Mark as invalid arbitration clause — waiver of class action rights unenforceable under state law", domain: "legal", date_created: "2026-01-15" },
+];
+
+const GOLD_STANDARD_RESULTS = [
+  // --- Nair (E-009) | avg = 0.82 — just below 0.85 recalibration threshold ---
+  { gs_result_id: "GSR-001", gs_item_id: "GS-001", expert_id: "E-009", agreement_score: 0.88, date_completed: "2026-01-20" },
+  { gs_result_id: "GSR-002", gs_item_id: "GS-002", expert_id: "E-009", agreement_score: 0.79, date_completed: "2026-01-20" },
+  { gs_result_id: "GSR-003", gs_item_id: "GS-003", expert_id: "E-009", agreement_score: 0.85, date_completed: "2026-01-21" },
+  { gs_result_id: "GSR-004", gs_item_id: "GS-004", expert_id: "E-009", agreement_score: 0.76, date_completed: "2026-01-21" },
+  { gs_result_id: "GSR-005", gs_item_id: "GS-005", expert_id: "E-009", agreement_score: 0.83, date_completed: "2026-01-22" },
+  { gs_result_id: "GSR-006", gs_item_id: "GS-006", expert_id: "E-009", agreement_score: 0.80, date_completed: "2026-01-22" },
+  { gs_result_id: "GSR-007", gs_item_id: "GS-007", expert_id: "E-009", agreement_score: 0.84, date_completed: "2026-01-23" },
+  { gs_result_id: "GSR-008", gs_item_id: "GS-008", expert_id: "E-009", agreement_score: 0.78, date_completed: "2026-01-23" },
+  { gs_result_id: "GSR-009", gs_item_id: "GS-009", expert_id: "E-009", agreement_score: 0.82, date_completed: "2026-01-24" },
+  { gs_result_id: "GSR-010", gs_item_id: "GS-010", expert_id: "E-009", agreement_score: 0.85, date_completed: "2026-01-24" },
+
+  // --- Okafor (E-010) | avg = 0.70 — well below threshold ---
+  { gs_result_id: "GSR-011", gs_item_id: "GS-001", expert_id: "E-010", agreement_score: 0.72, date_completed: "2026-01-20" },
+  { gs_result_id: "GSR-012", gs_item_id: "GS-002", expert_id: "E-010", agreement_score: 0.68, date_completed: "2026-01-20" },
+  { gs_result_id: "GSR-013", gs_item_id: "GS-003", expert_id: "E-010", agreement_score: 0.75, date_completed: "2026-01-21" },
+  { gs_result_id: "GSR-014", gs_item_id: "GS-004", expert_id: "E-010", agreement_score: 0.65, date_completed: "2026-01-21" },
+  { gs_result_id: "GSR-015", gs_item_id: "GS-005", expert_id: "E-010", agreement_score: 0.70, date_completed: "2026-01-22" },
+  { gs_result_id: "GSR-016", gs_item_id: "GS-006", expert_id: "E-010", agreement_score: 0.73, date_completed: "2026-01-22" },
+  { gs_result_id: "GSR-017", gs_item_id: "GS-007", expert_id: "E-010", agreement_score: 0.68, date_completed: "2026-01-23" },
+  { gs_result_id: "GSR-018", gs_item_id: "GS-008", expert_id: "E-010", agreement_score: 0.72, date_completed: "2026-01-23" },
+  { gs_result_id: "GSR-019", gs_item_id: "GS-009", expert_id: "E-010", agreement_score: 0.69, date_completed: "2026-01-24" },
+  { gs_result_id: "GSR-020", gs_item_id: "GS-010", expert_id: "E-010", agreement_score: 0.68, date_completed: "2026-01-24" },
+
+  // --- Chen (E-001) | avg = 0.92 — healthy control ---
+  { gs_result_id: "GSR-021", gs_item_id: "GS-001", expert_id: "E-001", agreement_score: 0.94, date_completed: "2026-01-20" },
+  { gs_result_id: "GSR-022", gs_item_id: "GS-002", expert_id: "E-001", agreement_score: 0.91, date_completed: "2026-01-20" },
+  { gs_result_id: "GSR-023", gs_item_id: "GS-003", expert_id: "E-001", agreement_score: 0.93, date_completed: "2026-01-21" },
+  { gs_result_id: "GSR-024", gs_item_id: "GS-004", expert_id: "E-001", agreement_score: 0.90, date_completed: "2026-01-21" },
+  { gs_result_id: "GSR-025", gs_item_id: "GS-005", expert_id: "E-001", agreement_score: 0.92, date_completed: "2026-01-22" },
+  { gs_result_id: "GSR-026", gs_item_id: "GS-006", expert_id: "E-001", agreement_score: 0.93, date_completed: "2026-01-22" },
+  { gs_result_id: "GSR-027", gs_item_id: "GS-007", expert_id: "E-001", agreement_score: 0.91, date_completed: "2026-01-23" },
+  { gs_result_id: "GSR-028", gs_item_id: "GS-008", expert_id: "E-001", agreement_score: 0.94, date_completed: "2026-01-23" },
+  { gs_result_id: "GSR-029", gs_item_id: "GS-009", expert_id: "E-001", agreement_score: 0.90, date_completed: "2026-01-24" },
+  { gs_result_id: "GSR-030", gs_item_id: "GS-010", expert_id: "E-001", agreement_score: 0.92, date_completed: "2026-01-24" },
+
+  // --- Sharma (E-003) | avg = 0.91 — healthy control ---
+  { gs_result_id: "GSR-031", gs_item_id: "GS-001", expert_id: "E-003", agreement_score: 0.93, date_completed: "2026-01-20" },
+  { gs_result_id: "GSR-032", gs_item_id: "GS-002", expert_id: "E-003", agreement_score: 0.90, date_completed: "2026-01-20" },
+  { gs_result_id: "GSR-033", gs_item_id: "GS-003", expert_id: "E-003", agreement_score: 0.92, date_completed: "2026-01-21" },
+  { gs_result_id: "GSR-034", gs_item_id: "GS-004", expert_id: "E-003", agreement_score: 0.89, date_completed: "2026-01-21" },
+  { gs_result_id: "GSR-035", gs_item_id: "GS-005", expert_id: "E-003", agreement_score: 0.91, date_completed: "2026-01-22" },
+  { gs_result_id: "GSR-036", gs_item_id: "GS-006", expert_id: "E-003", agreement_score: 0.90, date_completed: "2026-01-22" },
+  { gs_result_id: "GSR-037", gs_item_id: "GS-007", expert_id: "E-003", agreement_score: 0.93, date_completed: "2026-01-23" },
+  { gs_result_id: "GSR-038", gs_item_id: "GS-008", expert_id: "E-003", agreement_score: 0.91, date_completed: "2026-01-23" },
+  { gs_result_id: "GSR-039", gs_item_id: "GS-009", expert_id: "E-003", agreement_score: 0.88, date_completed: "2026-01-24" },
+  { gs_result_id: "GSR-040", gs_item_id: "GS-010", expert_id: "E-003", agreement_score: 0.93, date_completed: "2026-01-24" },
+
+  // --- Al-Hassan (E-007) | avg = 0.89 — healthy control ---
+  { gs_result_id: "GSR-041", gs_item_id: "GS-001", expert_id: "E-007", agreement_score: 0.90, date_completed: "2026-01-20" },
+  { gs_result_id: "GSR-042", gs_item_id: "GS-002", expert_id: "E-007", agreement_score: 0.88, date_completed: "2026-01-20" },
+  { gs_result_id: "GSR-043", gs_item_id: "GS-003", expert_id: "E-007", agreement_score: 0.91, date_completed: "2026-01-21" },
+  { gs_result_id: "GSR-044", gs_item_id: "GS-004", expert_id: "E-007", agreement_score: 0.87, date_completed: "2026-01-21" },
+  { gs_result_id: "GSR-045", gs_item_id: "GS-005", expert_id: "E-007", agreement_score: 0.89, date_completed: "2026-01-22" },
+  { gs_result_id: "GSR-046", gs_item_id: "GS-006", expert_id: "E-007", agreement_score: 0.88, date_completed: "2026-01-22" },
+  { gs_result_id: "GSR-047", gs_item_id: "GS-007", expert_id: "E-007", agreement_score: 0.90, date_completed: "2026-01-23" },
+  { gs_result_id: "GSR-048", gs_item_id: "GS-008", expert_id: "E-007", agreement_score: 0.89, date_completed: "2026-01-23" },
+  { gs_result_id: "GSR-049", gs_item_id: "GS-009", expert_id: "E-007", agreement_score: 0.87, date_completed: "2026-01-24" },
+  { gs_result_id: "GSR-050", gs_item_id: "GS-010", expert_id: "E-007", agreement_score: 0.91, date_completed: "2026-01-24" },
+
+  // --- Volkov (E-005) | avg = 0.95 — healthy control ---
+  { gs_result_id: "GSR-051", gs_item_id: "GS-001", expert_id: "E-005", agreement_score: 0.96, date_completed: "2026-01-20" },
+  { gs_result_id: "GSR-052", gs_item_id: "GS-002", expert_id: "E-005", agreement_score: 0.94, date_completed: "2026-01-20" },
+  { gs_result_id: "GSR-053", gs_item_id: "GS-003", expert_id: "E-005", agreement_score: 0.95, date_completed: "2026-01-21" },
+  { gs_result_id: "GSR-054", gs_item_id: "GS-004", expert_id: "E-005", agreement_score: 0.96, date_completed: "2026-01-21" },
+  { gs_result_id: "GSR-055", gs_item_id: "GS-005", expert_id: "E-005", agreement_score: 0.94, date_completed: "2026-01-22" },
+  { gs_result_id: "GSR-056", gs_item_id: "GS-006", expert_id: "E-005", agreement_score: 0.95, date_completed: "2026-01-22" },
+  { gs_result_id: "GSR-057", gs_item_id: "GS-007", expert_id: "E-005", agreement_score: 0.96, date_completed: "2026-01-23" },
+  { gs_result_id: "GSR-058", gs_item_id: "GS-008", expert_id: "E-005", agreement_score: 0.94, date_completed: "2026-01-23" },
+  { gs_result_id: "GSR-059", gs_item_id: "GS-009", expert_id: "E-005", agreement_score: 0.95, date_completed: "2026-01-24" },
+  { gs_result_id: "GSR-060", gs_item_id: "GS-010", expert_id: "E-005", agreement_score: 0.95, date_completed: "2026-01-24" },
+];
 
 function isValidDate(str) {
   return /^\d{4}-\d{2}-\d{2}$/.test(str) && !isNaN(new Date(str));

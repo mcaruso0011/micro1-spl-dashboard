@@ -9,12 +9,12 @@
 3 features to ship. When all 3 are checked, v2 is done and shareable.
 
 ```
-⬜ 1. IRR Tracking View         NEXT
-⬜ 2. Drift Monitoring
-⬜ 3. Gold Standard Tracking
+⬜ 1. IRR Tracking View         NEXT — data ready
+⬜ 2. Drift Monitoring          data ready
+⬜ 3. Gold Standard Tracking    data ready
 ```
 
-**Progress: 0 of 3 — v2 not yet started**
+**Progress: 0 of 3 UI features — Session 1 (data layer) complete and verified**
 
 ---
 
@@ -44,9 +44,32 @@ Theme: warm cream/pastel light. Fonts: Instrument Sans + Fira Code. Design token
 
 ---
 
-## Next Up — Session 1: QA Synthetic Data Layer (DO THIS BEFORE ANY UI WORK)
+## ✅ Completed — Session 1: QA Synthetic Data Layer
 
-Data only. No UI changes. No new tabs. Just data.
+Data only. No UI changes. No new tabs. Both `dashboard.jsx` and `preview.html` updated in sync.
+
+**What was added:**
+
+Two new experts appended to EXPERTS array:
+- `E-009` Dr. Priya Nair — Medicine, UCSF, accuracy 91.5%, trend "down" trendPct 3.8. Surface metrics look borderline acceptable; drift only visible in IRR week-over-week and gold standard data.
+- `E-010` James Okafor — Law, Columbia, accuracy 88.0%, status "active". Overall metrics look manageable; systematic calibration failure only visible in gold standard results.
+
+Three new module-level constants (not useState — same pattern as CLIENTS/PROJECTS/BATCHES):
+- `IRR_RECORDS` — 64 records: 8 expert pairings × 8 weeks (Jan 6 – Feb 24, 2026)
+- `GOLD_STANDARD_ITEMS` — 10 items: 5 medical (GS-001–005), 5 legal (GS-006–010)
+- `GOLD_STANDARD_RESULTS` — 60 records: 6 experts × 10 items
+
+**Verification checks (all passed):**
+```
+IRR_RECORDS.length                          → 64   (required: ≥ 40) ✅
+Nair (E-009) gold standard avg              → 0.82 (required: < 0.85) ✅
+Okafor (E-010) gold standard avg            → 0.70 (required: < 0.75) ✅
+Nair IRR early (wks 1–6) / late (wks 7–8)  → [0.848, 0.723] — clear drop visible ✅
+```
+
+---
+
+## Next Up — Session 2: IRR Tracking View
 
 ### Two new experts to add to the EXPERTS array
 
