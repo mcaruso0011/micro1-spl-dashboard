@@ -1,144 +1,148 @@
 # CURRENT_SPRINT.md — Active Work
 
-*Wipe and rewrite at the start of each new sprint. This is the short-term scratchpad Claude Code reads alongside FOUNDATION.md.*
+*Wipe and rewrite at the start of each new sprint. Claude Code reads this alongside FOUNDATION.md at the start of every session.*
 
 ---
 
-## v1 "Gold Camo" Completion Checklist
+## v2 "Gold Camo" Checklist
 
-7 features to ship. When all 7 are checked, v1 is done and shareable.
+3 features to ship. When all 3 are checked, v2 is done and shareable.
 
 ```
-✅ 1.  CSV import modal          DONE
-✅ 1a. Synthetic data layer      DONE — CLIENTS, PROJECTS, BATCHES, computeHealthScore
-✅ 2a. Health Snapshot           DONE — Overview tab, 3 color-coded project cards
-✅ 2b. Projects tab              DONE — full table + click-to-expand detail panels
-✅ 3.  Risk alerts panel         DONE — Overview tab, between Health Snapshot and charts
-⬜ 4.  Project switcher          SKIPPED — Health Snapshot + Projects tab already cover this need
-✅ 5.  Column sorting            DONE — all 9 columns, 3-click cycle, clears detail panel
-✅ 6.  CSV export                DONE — 12-column project summary, sage green button in header
-⬜ 7.  README polish + share     NEXT
+⬜ 1. IRR Tracking View         NEXT
+⬜ 2. Drift Monitoring
+⬜ 3. Gold Standard Tracking
 ```
 
-**Progress: 6 of 7 milestones — Column sorting + CSV export complete. Only README polish remains.**
+**Progress: 0 of 3 — v2 not yet started**
 
 ---
 
-## Current State
+## v1 Status (Complete)
 
-Five-tab dashboard is built and running:
-- ✅ Overview tab — KPI cards, Health Snapshot (3 project cards), daily charts, pipeline funnel, activity feed
-- ✅ Projects tab — table with health/pace/quality/deadline columns, click-to-expand batch + expert detail panels (sorting is feature #5)
-- ✅ Expert Roster tab — searchable table, trend % column, readiness score column, click-to-expand detail panel
-- ✅ Pipeline tab — funnel visualization, stage health cards, static notes section
-- ✅ Alerts tab — categorized alerts, acknowledge actions, timestamped log
-- ✅ CSV import modal — Upload → Validation → Success. Replaces all dashboard data on confirm.
+All v1 features shipped:
+- CSV import modal with two-tier validation
+- Synthetic data layer (CLIENTS, PROJECTS, BATCHES, computeHealthScore)
+- Health Snapshot on Overview tab
+- Projects tab with sortable table and detail panels
+- Risk Alerts panel
+- CSV export (12-column project summary)
+- Column sorting on Projects tab
+
+---
+
+## Current State of Codebase
+
+Five-tab dashboard running in dashboard.jsx and preview.html:
+- Overview tab — KPI cards, Health Snapshot (3 project cards), Risk Alerts panel, daily charts, pipeline funnel, activity feed
+- Projects tab — sortable 9-column table, click-to-expand batch and expert detail panels
+- Expert Roster tab — searchable table, trend %, readiness score, click-to-expand detail panel
+- Pipeline tab — funnel visualization, stage health cards, static notes section
+- Alerts tab — categorized alerts, acknowledge actions, timestamped log
 
 Theme: warm cream/pastel light. Fonts: Instrument Sans + Fira Code. Design tokens in `const T`.
 
 ---
 
-## ✅ Completed This Session — Column Sorting + CSV Export (Steps 5 & 6)
+## Next Up — Session 1: QA Synthetic Data Layer (DO THIS BEFORE ANY UI WORK)
 
-**Column sorting — Projects tab**
-- `projectSort` state: `{ key: null, dir: "asc" }` — single atomic object, not two separate values
-- `SORT_COLS` array of `{ label, key }` replaces the static string array for all 9 headers
-- `sortedProjects` IIFE: enriches all projects with derived fields in one pass (health, pace, quality, daysLeft, client), then sorts — same object used by both comparator and row render, so `computeHealthScore` is called once per project per render, not twice
-- Click cycles: default → asc (↑) → desc (↓) → default (key=null restores PROJECTS insertion order)
-- Any sort click clears `selectedProject` — prevents the detail panel from floating under a row that has moved
-- Column headers get `cursor: pointer`, `userSelect: none`, `whiteSpace: nowrap`, and color shifts to `T.textPrimary` when active
+Data only. No UI changes. No new tabs. Just data.
 
-**CSV export**
-- `exportCSV` function: pure computation, no state, no side effects beyond the download
-- 12 columns: project_name, client_name, domain, deadline, days_to_deadline, health_score, health_status, task_completion_pct, avg_quality_score, projected_completion_date, expert_count, avg_expert_load
-- Projected completion date derived from `dailyRate = completed_tasks / elapsed_days`; falls back to "N/A" if rate is 0
-- Avg expert load is mean of per-expert project counts (human-readable), not the internal load_score
-- Download via Blob + URL.createObjectURL + programmatic anchor click; URL revoked immediately
-- "Export CSV" button: sage green (`T.green`) in header, left of "Import CSV" (lavender) — color distinguishes outbound from inbound
+### Two new experts to add to the EXPERTS array
 
-Both `dashboard.jsx` and `preview.html` updated in sync. Verified in browser. Committed as `45d5a00`.
+**Expert 9 — "Dr. Priya Nair" (Drift Expert)**
+- Seniority: senior
+- Domain: medical
+- Overall accuracy looks acceptable (91-93% average)
+- IRR with peers: healthy (0.83-0.87) in weeks 1-6, drops to 0.71-0.74 in weeks 7-8
+- Recent accuracy (weeks 7-8): 78%, down from 93% in weeks 1-4
+- Gold standard agreement: 82% (just below 85% recalibration threshold)
+- Story: overall averages look fine, drift monitoring and gold standard tracking catch the problem
 
----
+**Expert 10 — "James Okafor" (Calibration Expert)**
+- Seniority: mid
+- Domain: legal
+- Overall accuracy: 88% (looks acceptable, inflated by easy tasks)
+- IRR with peers: erratic, ranges 0.65-0.89 depending on task type
+- Gold standard agreement: 68-72% (well below 85% threshold)
+- Story: overall metrics obscure a systematic calibration problem
 
-## ✅ Completed Previous Session — Risk Alerts Panel (Step 3)
+### Three new constants to add (module-level, not useState)
 
-Risk Alerts panel added to Overview tab, between Health Snapshot cards and daily bar charts.
+**IRR_RECORDS** — array of pairwise agreement records
+Each record: `{ irr_id, expert_a_id, expert_b_id, agreement_score, task_type, week_number, date_recorded }`
 
-- Scans all PROJECTS at render time via `computeHealthScore` — no new state
-- Filters to `status !== "healthy"` (at-risk + critical only)
-- Per-row reason string: computes gap from 100 for each sub-score (pace, quality, load), sorts descending, takes the worst — gives the single most actionable explanation
-- Header badge: red if any critical, amber if any at-risk, green if all clear
-- Empty state: green dot + "All projects healthy" when no alerts
-- Matched card style (borderRadius 14, padding 22) and badge pill style (`color + "1E"` alpha bg) from existing patterns
-- Author byline updated: "Mike K." → "Michael Caruso" in dashboard footer, preview footer, and README
+Minimum records needed:
+- Dr. Nair paired with 2-3 existing experts across 8 weeks (show healthy trend then drop)
+- James Okafor paired with 2-3 existing experts showing erratic scores
+- 2-3 existing expert pairs showing healthy consistent IRR (control group)
+- Minimum 40 records total to make charts meaningful
 
-Expected output with current synthetic data:
-- Medical QA Sprint → At Risk (amber) → "Expert load: avg 1.8 projects per person"
-- Engineering Data Batch → Critical (red) → "Pace at 50% of required rate"
-- Badge reads "2 need attention" in red
+**GOLD_STANDARD_ITEMS** — array of gold standard task definitions
+Each item: `{ gs_item_id, task_id, correct_output, domain, date_created }`
+Minimum 10 items across legal and medical domains.
 
-Both `dashboard.jsx` and `preview.html` updated in sync. Committed and pushed.
+**GOLD_STANDARD_RESULTS** — array of expert results on gold standard items
+Each result: `{ gs_result_id, gs_item_id, expert_id, agreement_score, date_completed }`
 
----
+Design so that:
+- Dr. Nair scores 82% average agreement (just below threshold)
+- James Okafor scores 70% average agreement (well below threshold)
+- 3-4 existing experts score 88-95% (healthy, control group)
 
-## ✅ Completed Previous Session — Projects Tab (Step 2b)
-
-**Bug fixed:** Health Snapshot was rendering blank project and client names because the implementation used `project.project_name` and `client.client_name` — the actual data fields are `.name` for both. Fixed in both `dashboard.jsx` and `preview.html`.
-
-**BATCHES constant added** — 8 batch records across 3 projects. Completed task counts sum to match each project's `completed_tasks` field:
-- P-001: Contracts Set A (100%), Contracts Set B (44%), Regulations Set (0%)
-- P-002: Diagnostic QA (70%), Treatment QA (0%)
-- P-003: Systems Batch 1 (60%), Systems Batch 2 (40%), Systems Batch 3 (0%)
-
-**Projects tab** — second in nav (Overview | Projects | Expert Roster | Pipeline | Alerts):
-- 9-column table: Project, Client, Domain, Health, Pace, Quality, Experts, Deadline, Status
-- All values computed at render time from PROJECTS, CLIENTS, BATCHES, computeHealthScore, experts state
-- Pace and Health scores color-coded green/amber/red using T tokens
-- Deadline turns red when < 7 days out
-- Click a row → inline detail panel expands below it (React.Fragment pattern)
-- Detail panel: left column = batch list with progress bars, right column = assigned experts with load count
-- Click same row again → collapses (toggle via `selectedProject` state)
-
-Expected table values (today ~2026-03-03):
-| Project | Health | Pace | Quality | Deadline |
-|---|---|---|---|---|
-| Legal Annotation Q1 | 91.7 green | 96% | 96.5 | ~43d |
-| Medical QA Sprint | 77.5 amber | 70% | 90.5 | ~2d over |
-| Engineering Data Batch | 65.8 red | 50% | 79.0 | ~14d |
+### Verification before closing session
+After adding data, verify in browser console:
+- IRR_RECORDS.length >= 40
+- GOLD_STANDARD_RESULTS filtered to expert_id of Dr. Nair average below 0.85
+- GOLD_STANDARD_RESULTS filtered to expert_id of James Okafor average below 0.75
+- At least one expert pair shows IRR drop from weeks 1-6 to weeks 7-8
 
 ---
 
-## Next Up — Step 7: README Polish + Share
+## Features 2 and 3 — Defined, Not Yet Started
 
-- Update README.md: reflect all 6 completed features, current tab inventory, how to open preview.html
-- Add a short "what this demos" paragraph aimed at a hiring audience
-- Consider adding a screenshot or gif (optional)
-- Once README is done, v1 is shareable
+### IRR Tracking View (Session 2, after data is ready)
+- New tab in dashboard nav: "QA Governance"
+- IRR panel showing pairwise scores across expert pairs
+- Filterable by expert pair, task type, time window
+- Visual threshold line at 0.8 on all IRR charts
+- Color coding: green ≥ 0.8, amber 0.7-0.79, red < 0.7
+
+### Drift Monitoring (Session 3)
+- Lives inside QA Governance tab as a second panel
+- Accuracy broken out by week, not just overall average
+- Line chart per expert showing week-over-week trend
+- Highlights experts whose recent window diverges from overall average by more than 10 points
+
+### Gold Standard Tracking (Session 4)
+- Lives inside QA Governance tab as a third panel
+- Per-expert agreement rate against gold standard items over time
+- Recalibration threshold line at 85%
+- Flags experts below threshold with a clear visual indicator
 
 ---
 
-## Open Questions
+## Open Questions (Carried from v1)
 
-- **`velocity` field in DAILY_METRICS** — computed but never rendered. Surface in a chart or remove?
-- **Pipeline Notes section** — currently hardcoded strings. Should this derive from pipeline data, or stay editorial?
-- **Expert sparklines** — directional trend % was added instead of sparklines. Still wanted?
-- **Pipeline funnel error threshold (>10)** — arbitrary. Make configurable per project?
+- `velocity` field in DAILY_METRICS computed but never rendered. Surface or remove?
+- Pipeline Notes section is hardcoded strings. Derive from data or keep editorial?
+- Expert sparklines still wanted as a separate enhancement?
+- Pipeline funnel error threshold (>10) is arbitrary. Make configurable?
 
 ---
 
-## Known Issues / Tech Debt
+## Known Tech Debt (Carried from v1)
 
-- Pipeline Notes bottleneck analysis does not update when data changes — hardcoded text
+- BATCHES not wired to CSV import
+- assigned_expert_ids on PROJECTS not updated by CSV import
+- Pipeline Notes bottleneck analysis does not update when data changes
 - No "see more" link from Overview activity feed to Alerts tab
-- README.md needs update once v1 features are complete
-- BATCHES is not wired to CSV import — after a CSV import, the Projects tab detail panel still shows synthetic batch data. Batch-level import requires adding batch columns to the import schema and a BATCHES parser in the import handler.
-- assigned_expert_ids on PROJECTS is not updated by CSV import either — expert panel in Projects tab detail will revert to synthetic expert IDs after import. Same fix scope as BATCHES.
 
 ---
 
 ## Do Not Do This Sprint
 
-- Do not start on predictive scoring (v2)
-- Do not build client-facing view (v2)
-- Do not add domain-specific logic beyond filter tags
-- Do not build column sorting or CSV export until features 2 and 3 are done
+- Do not build UI before Session 1 data is verified
+- Do not start audit cadence configuration or calibration session log (v2 phase 2)
+- Do not start predictive scoring (future roadmap)
+- Do not build client-facing view (future roadmap)

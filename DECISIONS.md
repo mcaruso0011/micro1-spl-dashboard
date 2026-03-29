@@ -68,70 +68,14 @@ Format: `[YYYY-MM-DD] — [Decision] — [Reason / tradeoff]`
 
 [2026-02-23] — Fade-in animation on mount via opacity transition — `animateIn` state flips in useEffect, triggers 0.6s opacity transition on root div. Purely cosmetic. Inferred from code.
 
-[2026-02-24] — CSV import modal implemented as a three-stage flow: Upload → Validation → Success — Stage 1 has drag-drop zone and template download. Stage 2 runs full FOUNDATION.md validator (errors block, warnings flag) and shows a confirm button. Stage 3 auto-closes after 2 seconds. Replaces all dashboard state on confirm.
+[2026-03-29] — v2 scope locked to three QA governance features: IRR Tracking, Drift Monitoring, Gold Standard Tracking — These three tell the QA governance story completely and are the highest visual impact for a portfolio piece. Audit cadence configuration, calibration session log, and recalibration threshold alerts scoped to v2 phase 2.
 
-[2026-02-24] — `ImportModal` defined as top-level function outside `Dashboard()`, not nested inside it — Nested component definitions cause React to treat them as new component types on every parent re-render, forcing full remount and destroying internal state (drag-over, file input ref). Top-level definition with props passed in avoids this.
+[2026-03-29] — Two new synthetic experts added specifically for QA pattern demonstration — Dr. Priya Nair (drift pattern: healthy overall metrics masking recent decline) and James Okafor (calibration pattern: acceptable overall accuracy masking systematic gold standard failures). Existing eight experts unchanged to preserve v1 dashboard behavior.
 
-[2026-02-24] — Auto-dismiss useEffect placed in `Dashboard`, not in `ImportModal` — Placing it in `ImportModal` risks stale closure reads of `importStage`. Dashboard reads its own state directly, so the cleanup always fires against the current value.
+[2026-03-29] — QA data modeled as three new module-level constants: IRR_RECORDS, GOLD_STANDARD_ITEMS, GOLD_STANDARD_RESULTS — Same rationale as CLIENTS/PROJECTS/BATCHES in v1. No useState until UI is wired. Module-level constants keep data design separate from render logic.
 
-[2026-02-24] — `parseDateLocal(str)` uses `new Date(y, m-1, d)` instead of `new Date(str)` — ISO strings parsed by `new Date()` are treated as UTC midnight, shifting `getDay()` in UTC+ timezones. Local constructor guarantees correct day-of-week bucketing for daily metrics.
+[2026-03-29] — SPL positioned as consumer of dashboard, not data entry clerk — Documented in FOUNDATION.md as a core product principle. CSV import is a data model demonstration for the portfolio piece, not a realistic production ingestion path. In production, IRR scores compute automatically from task completions; gold standard results are captured by the task management system.
 
-[2026-02-24] — `MiniBar` gets `|| 1` zero-max guard and a "No data" empty state — When all values are 0 (e.g., no completed tasks in imported CSV), `Math.max(...) === 0` causes NaN bar heights. Guard prevents broken rendering without hiding the component.
+[2026-03-29] — Import validator extended with context-level warnings — In addition to field-level errors and warnings, a third tier of dataset-level context checks added: project ID reconciliation, expert name fuzzy matching, date range sanity check, and volume anomaly detection. These catch "wrong dataset uploaded" scenarios before data goes live.
 
-[2026-02-24] — `calcReadiness` gets null guard for `accuracy` — Imported experts may have no quality scores, so `accuracy` is `null`. The stepped comparison chain fails silently on null. Guard returns 0 rather than crashing.
-
-[2026-02-24] — Four module-level constants (EXPERTS, PIPELINE_STAGES, DAILY_METRICS, ALERTS) promoted to `useState` initial values — Dashboard now holds live data in state, replaceable by CSV import without a page reload. Module-level constants remain as seed values only.
-
-[2026-02-24] — avgTime and trendPct cannot be derived from import schema; default to null and 0 — Import schema has no per-task time field. All import-derived experts show "—" in Avg Time column and a stable trend arrow. Documented as known limitation.
-
-[2026-02-24] — Pipeline stages synthesized from task status distribution after import — Five named stages (Ingestion → Client Delivery) are computed proportionally from task statuses rather than stored explicitly. Throughput = completed/tasks * 100, guarded against divide-by-zero.
-
-[2026-02-24] — Excel BOM stripping added to `parseCSV` — Excel-generated CSVs prepend `\uFEFF` (UTF-8 BOM), corrupting the first column name. Stripped in `parseCSV` with `text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text`.
-
-[2026-02-28] — CLIENTS and PROJECTS added as module-level constants, not useState — No UI reads them yet. Keeping them as constants until the project switcher is built next session; promoting to state at that point avoids premature wiring.
-
-[2026-02-28] — Project lifecycle `status` ("active") is separate from computed health `status` ("healthy"/"at-risk"/"critical") — PROJECTS[n].status is the operational lifecycle field per FOUNDATION.md. computeHealthScore returns its own status field. No field name collision; different objects.
-
-[2026-02-28] — quality_score capped at 100 in computeHealthScore — FOUNDATION.md does not explicitly cap it, but scores above 100 distort the composite. P-001 would compute 104.9 uncapped. Cap applied with Math.min(..., 100).
-
-[2026-02-28] — computeHealthScore takes allProjects as second argument rather than reading module-level PROJECTS — Keeps it a pure function with no external dependencies, consistent with calcReadiness(expert). Enables unit testing and future state-based calls without refactoring.
-
-[2026-02-28] — Clients changed from OpenAI/Google/Microsoft to Lab Alpha/Lab Beta/NovaMed AI — Plan originally used real company names as placeholders. Switched to fictional names to avoid implying real partnerships in a portfolio demo.
-
-[2026-03-03] — BATCHES added as module-level constant (not useState) — Same rationale as CLIENTS/PROJECTS: no CSV import path updates them yet. 8 records across 3 projects; completed_tasks values sum to each project's completed_tasks field so batch-level and project-level totals stay consistent.
-
-[2026-03-03] — Projects tab uses React.Fragment per row to allow the detail panel to render as a sibling <tr> — A detail panel that spans all 9 columns must be a <tr> child of <tbody>. React.Fragment is the only way to return two <tr> elements from a single .map() iteration without introducing an extra DOM wrapper that would break table structure.
-
-[2026-03-03] — Expert load in Projects tab detail panel computed inline from PROJECTS.filter() — No stored load field. Count of PROJECTS where assigned_expert_ids.includes(eid) is the correct derived value per FOUNDATION.md data model. Consistent with the load_score formula in computeHealthScore.
-
-[2026-03-03] — Batch progress bar color: green at 100%, amber if in progress, track color if 0% — 0% renders as an invisible fill (same color as track) rather than a colored sliver, which would falsely imply progress. Green only when fully complete — amber for any partial state.
-
-[2026-03-03] — Projects tab placed second in nav (after Overview) — It is the primary working view for the SPL; Overview is the quick-glance summary. Positioning reflects usage frequency: scan Overview first, then drill into Projects.
-
-[2026-03-03] — assigned_expert_ids array on PROJECTS used as v1 stand-in for ExpertProjectAssignment junction table — FOUNDATION.md specifies a full junction with assigned_date and role. For v1 synthetic data, a flat array of IDs is sufficient: it supports load computation, expert name lookup, and count display. Full junction promoted to v2 when role-level data (lead vs. contributor) needs to be surfaced.
-
-[2026-03-03] — Risk Alerts panel uses IIFE pattern (`{(() => { ... })()}`) to declare computed variables inline in JSX — React JSX cannot contain `const` declarations directly. IIFE is the idiomatic way to compute local variables (alertProjects, alertBadgeColor, alertBadgeLabel) and return JSX in a single expression, without adding new state or extracting a child component.
-
-[2026-03-03] — Reason string derived from largest sub-score gap (100 - score), not lowest absolute score — Comparing gaps rather than raw scores normalizes across components: a pace_score of 50 (gap 50) correctly outranks a load_score of 57.1 (gap 42.9) even though both are below 100. Sorting descending by gap and taking [0] is a one-liner that remains correct as the formula weights change.
-
-[2026-03-03] — Risk Alerts badge color follows severity hierarchy: red if any critical, amber if any at-risk, green if all clear — Badge communicates worst-case status at a glance. An at-risk project is not suppressed just because no project is critical. Green only when alertProjects.length === 0.
-
-[2026-03-03] — load_score reason string uses `(100 / load_score).toFixed(1)` to show avg projects per expert — load_score = 100 / avg_load, so inverting recovers the human-readable number (e.g., load_score 57.1 → avg 1.75 projects per person). This is the same inversion used implicitly in computeHealthScore; surfacing it in the reason string makes the metric legible without adding a new field.
-
-[2026-03-04] — Column sort state stored as `{ key, dir }` object, not two separate useState values — A single object keeps the key and direction atomically consistent; two separate state values would allow a render between setting key and setting dir, producing a transient mis-sort.
-
-[2026-03-04] — `sortedProjects` computed inside an IIFE in the Projects tab block, not in the main component body — Same IIFE pattern already established for Risk Alerts. Keeps derived logic co-located with its consumer. No new state introduced; derived array is recomputed on every render from PROJECTS + projectSort.
-
-[2026-03-04] — `sortedProjects` IIFE enriches each project with all derived fields before sorting — Avoids calling `computeHealthScore` twice per row (once for sort, once for render). Single enrichment pass means the sort comparator and the row JSX read from the same object.
-
-[2026-03-04] — Clicking any sort header clears `selectedProject` — Without this, the detail panel would remain visually expanded below a row that has moved to a different position, creating a confusing layout. Selection clear is the simplest fix and matches standard table sort behavior.
-
-[2026-03-04] — Sort cycles default → asc → desc → default (key=null resets) — Three-click cycle lets the user return to the canonical PROJECTS insertion order. key=null is the sentinel; the enriched array is returned unsorted when key is null.
-
-[2026-03-04] — CSV export uses Blob + URL.createObjectURL + programmatic anchor click — Standard browser-native technique; no external library. URL is immediately revoked after click to avoid memory leak.
-
-[2026-03-04] — Export computes projected completion date from dailyRate and remaining tasks — `dailyRate = completed_tasks / elapsed_days`; `remaining = target_task_count - completed_tasks`; projected date = today + (remaining / dailyRate) days. Falls back to "N/A" if dailyRate is 0 to avoid Infinity/NaN in the CSV.
-
-[2026-03-04] — Export avg expert load computed per-project as mean of per-expert project counts — Same formula as load_score numerator in computeHealthScore, but expressed as a raw average rather than a score. Gives the CSV consumer the human-readable number (e.g., "1.8") rather than the internal score (e.g., "57.1").
-
-[2026-03-04] — Export button styled with T.green to visually distinguish it from Import (T.lavender) — Both are pill buttons in the header. Different accent colors signal different action types at a glance: green = outbound data, lavender = inbound data.
+[2026-03-29] — IRR threshold documented as 0.8 with client/task-type variability noted — 0.8 is the widely used convention but legal annotation may demand 0.9+, subjective tasks may accept 0.75. SPL would negotiate thresholds with each client at project setup. Dashboard threshold line is configurable per QA_ThresholdConfig in the data model.
