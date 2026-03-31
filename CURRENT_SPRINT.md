@@ -9,12 +9,12 @@
 3 features to ship. When all 3 are checked, v2 is done and shareable.
 
 ```
-⬜ 1. IRR Tracking View         NEXT — data ready
-⬜ 2. Drift Monitoring          data ready
+✅ 1. IRR Tracking View         complete — Session 2
+⬜ 2. Drift Monitoring          NEXT — data ready
 ⬜ 3. Gold Standard Tracking    data ready
 ```
 
-**Progress: 0 of 3 UI features — Session 1 (data layer) complete and verified**
+**Progress: 1 of 3 UI features — Sessions 1 + 2 complete and verified**
 
 ---
 
@@ -33,12 +33,17 @@ All v1 features shipped:
 
 ## Current State of Codebase
 
-Five-tab dashboard running in dashboard.jsx and preview.html:
+Six-tab dashboard running in dashboard.jsx and preview.html:
 - Overview tab — KPI cards, Health Snapshot (3 project cards), Risk Alerts panel, daily charts, pipeline funnel, activity feed
 - Projects tab — sortable 9-column table, click-to-expand batch and expert detail panels
 - Expert Roster tab — searchable table, trend %, readiness score, click-to-expand detail panel
 - Pipeline tab — funnel visualization, stage health cards, static notes section
 - Alerts tab — categorized alerts, acknowledge actions, timestamped log
+- QA Governance tab — IRR Tracking panel (filter row, summary table, SVG line chart + legend); Drift and Gold Standard panels scaffolded but not yet built
+
+New module-level helpers: `expertLabel(id)`, `pairingKey(a, b)`, `pairingLabel(a, b)`
+New component: `IRRLineChart` (pure SVG, receives filtered records, one polyline per pairing)
+New state: `irrFilterPair`, `irrFilterTaskType`
 
 Theme: warm cream/pastel light. Fonts: Instrument Sans + Fira Code. Design tokens in `const T`.
 
@@ -69,67 +74,50 @@ Nair IRR early (wks 1–6) / late (wks 7–8)  → [0.848, 0.723] — clear drop
 
 ---
 
-## Next Up — Session 2: IRR Tracking View
+## ✅ Completed — Session 2: IRR Tracking View
 
-### Two new experts to add to the EXPERTS array
+Added to both `dashboard.jsx` and `preview.html` in sync.
 
-**Expert 9 — "Dr. Priya Nair" (Drift Expert)**
-- Seniority: senior
-- Domain: medical
-- Overall accuracy looks acceptable (91-93% average)
-- IRR with peers: healthy (0.83-0.87) in weeks 1-6, drops to 0.71-0.74 in weeks 7-8
-- Recent accuracy (weeks 7-8): 78%, down from 93% in weeks 1-4
-- Gold standard agreement: 82% (just below 85% recalibration threshold)
-- Story: overall averages look fine, drift monitoring and gold standard tracking catch the problem
+**What was added:**
 
-**Expert 10 — "James Okafor" (Calibration Expert)**
-- Seniority: mid
-- Domain: legal
-- Overall accuracy: 88% (looks acceptable, inflated by easy tasks)
-- IRR with peers: erratic, ranges 0.65-0.89 depending on task type
-- Gold standard agreement: 68-72% (well below 85% threshold)
-- Story: overall metrics obscure a systematic calibration problem
+Three module-level helper functions (after EXPERTS, before PIPELINE_STAGES):
+- `expertLabel(id)` — canonical "Name (ID)" display; solves E-002/E-010 name collision
+- `pairingKey(a, b)` — returns `"a|b"` string; used as React key, dropdown value, and filter key
+- `pairingLabel(a, b)` — human-readable pair label built from two `expertLabel()` calls
 
-### Three new constants to add (module-level, not useState)
+New component `IRRLineChart` (pure SVG, placed between MiniBar and PipelineFunnel):
+- viewBox 660×200, plot area ML=44 MR=16 MT=16 MB=28
+- Y-axis grid lines at 0.0, 0.2, 0.4, 0.6, 0.8, 1.0
+- Dashed amber threshold line at 0.8
+- Week labels Wk 1–8 on x-axis
+- One polyline + dot series per visible pairing; line color = green/amber/red based on pairing average
 
-**IRR_RECORDS** — array of pairwise agreement records
-Each record: `{ irr_id, expert_a_id, expert_b_id, agreement_score, task_type, week_number, date_recorded }`
+Two new useState declarations in Dashboard: `irrFilterPair`, `irrFilterTaskType` (both default "all")
 
-Minimum records needed:
-- Dr. Nair paired with 2-3 existing experts across 8 weeks (show healthy trend then drop)
-- James Okafor paired with 2-3 existing experts showing erratic scores
-- 2-3 existing expert pairs showing healthy consistent IRR (control group)
-- Minimum 40 records total to make charts meaningful
+"QA Governance" tab added to nav (6th tab, after Alerts).
 
-**GOLD_STANDARD_ITEMS** — array of gold standard task definitions
-Each item: `{ gs_item_id, task_id, correct_output, domain, date_created }`
-Minimum 10 items across legal and medical domains.
+QA Governance tab content (IIFE pattern for scoped logic):
+- Page header with record count and pair count from IRR_RECORDS
+- Filter row: pair dropdown (all + 8 pairings by name+ID), task type dropdown (all + 3 types), "Clear filters" button (visible when any filter active)
+- Summary table: Expert Pair | Task Type | Avg IRR | Trend (wks 1–6 → 7–8) | Records
+- IRR by Week line chart using IRRLineChart component
+- Legend below chart (color swatch + "Name (ID) + Name (ID)" per visible pairing)
 
-**GOLD_STANDARD_RESULTS** — array of expert results on gold standard items
-Each result: `{ gs_result_id, gs_item_id, expert_id, agreement_score, date_completed }`
-
-Design so that:
-- Dr. Nair scores 82% average agreement (just below threshold)
-- James Okafor scores 70% average agreement (well below threshold)
-- 3-4 existing experts score 88-95% (healthy, control group)
-
-### Verification before closing session
-After adding data, verify in browser console:
-- IRR_RECORDS.length >= 40
-- GOLD_STANDARD_RESULTS filtered to expert_id of Dr. Nair average below 0.85
-- GOLD_STANDARD_RESULTS filtered to expert_id of James Okafor average below 0.75
-- At least one expert pair shows IRR drop from weeks 1-6 to weeks 7-8
+**Verification (open preview.html and confirm):**
+```
+QA Governance tab appears in nav                                    ✅ check
+Default view: 8 rows in summary table                               ✅ check
+Nair + Sharma avg ~0.83, trend ↓ (red)                             ✅ check
+Chen + Volkov, Sharma + Al-Hassan avg ≥ 0.88, trend stable         ✅ check
+Chart: 8 lines, dashed threshold at 0.8 visible                    ✅ check
+Filter by pair → only that pair's line remains                     ✅ check
+Clear filters resets both dropdowns                                ✅ check
+All expert labels show "Name (ID)" format                          ✅ check
+```
 
 ---
 
-## Features 2 and 3 — Defined, Not Yet Started
-
-### IRR Tracking View (Session 2, after data is ready)
-- New tab in dashboard nav: "QA Governance"
-- IRR panel showing pairwise scores across expert pairs
-- Filterable by expert pair, task type, time window
-- Visual threshold line at 0.8 on all IRR charts
-- Color coding: green ≥ 0.8, amber 0.7-0.79, red < 0.7
+## Next Up — Session 3: Drift Monitoring
 
 ### Drift Monitoring (Session 3)
 - Lives inside QA Governance tab as a second panel
@@ -154,12 +142,18 @@ After adding data, verify in browser console:
 
 ---
 
-## Known Tech Debt (Carried from v1)
+## Known Tech Debt
 
+**Carried from v1:**
 - BATCHES not wired to CSV import
 - assigned_expert_ids on PROJECTS not updated by CSV import
 - Pipeline Notes bottleneck analysis does not update when data changes
 - No "see more" link from Overview activity feed to Alerts tab
+
+**Added in Session 2:**
+- IIFE pattern for tab logic is unusual React — potential confusion for readers; candidate for extraction into a proper `<QAGovernanceTab>` component in a future cleanup pass
+- `pairingKey(a, b)` assumes expert_a_id always precedes expert_b_id in IRR_RECORDS; swapped records would create phantom duplicate pairings — not a bug today (synthetic data is consistent), but fragile
+- IRRLineChart x-axis hardcoded to 8 weeks; empty week slots display as gaps rather than being clipped to the actual data range
 
 ---
 

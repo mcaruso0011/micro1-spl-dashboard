@@ -95,3 +95,19 @@ Format: `[YYYY-MM-DD] — [Decision] — [Reason / tradeoff]`
 [2026-03-29] — GOLD_STANDARD_RESULTS limited to 6 experts, not all 10 — Only experts relevant to the QA stories (E-009, E-010) plus four healthy controls (E-001, E-003, E-005, E-007) complete the gold standard items. Adding all 10 experts adds noise without adding story. The control group gives the SPL a visual reference for what passing looks like.
 
 [2026-03-29] — `correct_output` field on GOLD_STANDARD_ITEMS uses full annotation strings — Brief but specific: "Flag as informed consent violation — patient signature predates disclosure document." Real enough to demonstrate that gold standard items are domain-specific, not generic. Not so verbose that they dominate the data file.
+
+[2026-03-30] — IIFE pattern used for QA Governance tab logic instead of extracted component or top-level variables — All filter derivation, filtering, and summary computation for the tab are inside `{activeTab === "qa-governance" && (() => { ... })()}`. Variables stay scoped to the block without polluting Dashboard state or requiring useMemo. Trade-off: unusual pattern that could confuse unfamiliar readers; see tech debt note.
+
+[2026-03-30] — IRRLineChart line color derived from per-pairing average, not per-point score — Each polyline is a single solid color (green/amber/red) based on the average agreement score across all visible weeks. Considered per-point coloring but rejected: a line that changes colors mid-path makes overall pairing health harder to read at a glance.
+
+[2026-03-30] — COLORS rotation array (from plan) dropped in favor of semantic irrColor(avg) — Plan specified an 8-color palette rotation by pairing index. Final implementation uses `avg >= 0.8 → green, avg >= 0.7 → amber, else red` for every line. Semantic colors make the threshold line meaningful without requiring a legend to decode arbitrary palette assignments.
+
+[2026-03-30] — `pairingKey(a, b)` uses pipe-delimited string "E-009|E-003" as canonical pair identifier — Used as React key, filter dropdown value, and Map key throughout. Splitting on `|` recovers individual IDs. Assumes expert_a_id always precedes expert_b_id consistently within IRR_RECORDS — true for synthetic data, fragile if records are ever generated with swapped ordering.
+
+[2026-03-30] — `expertLabel(id)` is the single source of truth for all expert name display in QA tab — Always renders as "Name (ID)" (e.g., "James Okafor (E-010)"). Every pair label, table cell, legend entry, and dropdown option flows through it. This is the canonical solution to the E-002/E-010 "James Okafor" name collision without conditional logic at the render site.
+
+[2026-03-30] — Trend delta thresholds set at < -0.05 (declining) and > +0.02 (improving) — -0.05 requires a meaningful 5-point drop across the early/late window split (wks 1–6 vs wks 7–8). +0.02 is intentionally low to surface genuine upward trends without requiring a large sample. Values between the two thresholds display as "→ stable". Both thresholds are arbitrary and candidates for making configurable.
+
+[2026-03-30] — Filter state (`irrFilterPair`, `irrFilterTaskType`) held at Dashboard component level, not scoped to tab IIFE — State lifts to Dashboard so the selected filters persist if the user navigates to another tab and returns. If state were local to the IIFE it would reset on every tab switch.
+
+[2026-03-30] — IRRLineChart x-axis hardcoded to 8 weeks — Week labels 1–8 are fixed. If filtered data spans fewer weeks the chart still shows all 8 labels; missing weeks simply have no points. Acceptable for the 8-week synthetic dataset. Would need to be data-driven for a variable time window.

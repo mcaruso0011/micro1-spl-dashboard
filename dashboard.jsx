@@ -140,6 +140,13 @@ const EXPERTS = [
   { id: "E-010", name: "James Okafor",        domain: "Law",         university: "Columbia",      rating: 4.4, tasksCompleted: 124, avgTime: 33, accuracy: 88.0, status: "active", trend: "stable", trendPct: 0.5 },
 ];
 
+const expertLabel = (id) => {
+  const e = EXPERTS.find(ex => ex.id === id);
+  return e ? `${e.name} (${id})` : id;
+};
+const pairingKey   = (a, b) => `${a}|${b}`;
+const pairingLabel = (a, b) => `${expertLabel(a)} + ${expertLabel(b)}`;
+
 const PIPELINE_STAGES = [
   { name: "Ingestion",       tasks: 1247, completed: 1198, errors: 12, throughput: 96.1 },
   { name: "Annotation",      tasks: 1198, completed: 987,  errors: 34, throughput: 82.4 },
@@ -701,6 +708,73 @@ const MiniBar = ({ data, dataKey, color, height = 80 }) => {
   );
 };
 
+// --- IRR Line Chart ---
+const IRRLineChart = ({ records }) => {
+  if (!records.length) return (
+    <div style={{ height: 200, display: "flex", alignItems: "center",
+      justifyContent: "center" }}>
+      <span style={{ fontSize: 12, color: T.textMuted }}>No data for selected filters</span>
+    </div>
+  );
+
+  const pairKeys = [...new Set(records.map(r => pairingKey(r.expert_a_id, r.expert_b_id)))];
+
+  const W = 660, H = 200, ML = 44, MR = 16, MT = 16, MB = 28;
+  const PW = W - ML - MR;
+  const PH = H - MT - MB;
+  const xOf = (week)  => ML + (week - 1) * (PW / 7);
+  const yOf = (score) => MT + PH - score * PH;
+
+  return (
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block" }}>
+      {[0, 0.2, 0.4, 0.6, 0.8, 1.0].map(v => (
+        <g key={v}>
+          <line x1={ML} x2={W - MR} y1={yOf(v)} y2={yOf(v)}
+            stroke={T.borderLight} strokeWidth={1} />
+          <text x={ML - 6} y={yOf(v) + 4} textAnchor="end"
+            fontSize={9} fill={T.textMuted} fontFamily={T.fontMono}>
+            {v.toFixed(1)}
+          </text>
+        </g>
+      ))}
+
+      <line x1={ML} x2={W - MR} y1={yOf(0.8)} y2={yOf(0.8)}
+        stroke={T.amber} strokeWidth={1.5} strokeDasharray="4 3" opacity={0.8} />
+      <text x={W - MR + 2} y={yOf(0.8) + 4} fontSize={9}
+        fill={T.amber} fontFamily={T.fontMono}>0.8</text>
+
+      {[1,2,3,4,5,6,7,8].map(w => (
+        <text key={w} x={xOf(w)} y={H - 6} textAnchor="middle"
+          fontSize={9} fill={T.textMuted} fontFamily={T.fontMono}>
+          Wk {w}
+        </text>
+      ))}
+
+      {pairKeys.map((key) => {
+        const pts = records
+          .filter(r => pairingKey(r.expert_a_id, r.expert_b_id) === key)
+          .sort((a, b) => a.week_number - b.week_number);
+        const d = pts.map(r =>
+          `${xOf(r.week_number).toFixed(1)},${yOf(r.agreement_score).toFixed(1)}`
+        ).join(" ");
+        const avg = pts.reduce((s, r) => s + r.agreement_score, 0) / pts.length;
+        const lineColor = avg >= 0.8 ? T.green : avg >= 0.7 ? T.amber : T.red;
+        return (
+          <g key={key}>
+            <polyline points={d} fill="none"
+              stroke={lineColor} strokeWidth={2} opacity={0.85} />
+            {pts.map(r => (
+              <circle key={r.irr_id}
+                cx={xOf(r.week_number)} cy={yOf(r.agreement_score)} r={3}
+                fill={lineColor} opacity={0.9} />
+            ))}
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
 // --- Pipeline Funnel ---
 const PipelineFunnel = ({ stages }) => {
   const maxTasks = stages[0].tasks || 1;
@@ -1032,6 +1106,8 @@ export default function Dashboard() {
   const [pipelineStages, setPipelineStages] = useState(PIPELINE_STAGES);
   const [dailyMetrics,   setDailyMetrics]   = useState(DAILY_METRICS);
   const [alerts,         setAlerts]         = useState(ALERTS);
+  const [irrFilterPair,     setIrrFilterPair]     = useState("all");
+  const [irrFilterTaskType, setIrrFilterTaskType] = useState("all");
 
   useEffect(() => {
     setAnimateIn(true);
@@ -1141,6 +1217,7 @@ export default function Dashboard() {
     { id: "experts",   label: "Expert Roster" },
     { id: "pipeline",  label: "Pipeline" },
     { id: "alerts",    label: `Alerts (${alerts.length})` },
+    { id: "qa-governance", label: "QA Governance" },
   ];
 
   return (
@@ -1797,6 +1874,185 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        {/* ===== QA GOVERNANCE TAB ===== */}
+        {activeTab === "qa-governance" && (() => {
+
+          const allPairKeys = [...new Set(
+            IRR_RECORDS.map(r => pairingKey(r.expert_a_id, r.expert_b_id))
+          )];
+          const allTaskTypes = [...new Set(IRR_RECORDS.map(r => r.task_type))].sort();
+
+          const filteredIRR = IRR_RECORDS.filter(r => {
+            const pkMatch = irrFilterPair === "all" ||
+              pairingKey(r.expert_a_id, r.expert_b_id) === irrFilterPair;
+            const ttMatch = irrFilterTaskType === "all" || r.task_type === irrFilterTaskType;
+            return pkMatch && ttMatch;
+          });
+
+          const visiblePairs = [...new Set(
+            filteredIRR.map(r => pairingKey(r.expert_a_id, r.expert_b_id))
+          )];
+          const pairSummaries = visiblePairs.map(key => {
+            const [aId, bId] = key.split("|");
+            const rows = filteredIRR.filter(r =>
+              pairingKey(r.expert_a_id, r.expert_b_id) === key
+            );
+            const avg      = rows.reduce((s, r) => s + r.agreement_score, 0) / rows.length;
+            const early    = rows.filter(r => r.week_number <= 6);
+            const late     = rows.filter(r => r.week_number >= 7);
+            const earlyAvg = early.length ? early.reduce((s,r)=>s+r.agreement_score,0)/early.length : null;
+            const lateAvg  = late.length  ? late.reduce((s,r)=>s+r.agreement_score,0)/late.length   : null;
+            const delta    = (earlyAvg !== null && lateAvg !== null) ? lateAvg - earlyAvg : null;
+            const taskType = rows[0]?.task_type ?? "—";
+            return { key, aId, bId, avg, delta, taskType, weekCount: rows.length };
+          });
+
+          const selectStyle = {
+            background: T.inputBg, border: `1px solid ${T.border}`, borderRadius: 8,
+            padding: "8px 14px", fontSize: 13, color: T.textPrimary,
+            fontFamily: T.fontBody, outline: "none", cursor: "pointer",
+          };
+          const irrColor = (v) => v >= 0.8 ? T.green : v >= 0.7 ? T.amber : T.red;
+
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: T.textPrimary }}>
+                  QA Governance
+                </div>
+                <div style={{ fontSize: 13, color: T.textMuted, marginTop: 4 }}>
+                  Inter-rater reliability · {IRR_RECORDS.length} records across{" "}
+                  {allPairKeys.length} expert pairs
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <select value={irrFilterPair} onChange={e => setIrrFilterPair(e.target.value)}
+                  style={selectStyle}>
+                  <option value="all">All pairs</option>
+                  {allPairKeys.map(key => {
+                    const [a, b] = key.split("|");
+                    return <option key={key} value={key}>{pairingLabel(a, b)}</option>;
+                  })}
+                </select>
+                <select value={irrFilterTaskType}
+                  onChange={e => setIrrFilterTaskType(e.target.value)} style={selectStyle}>
+                  <option value="all">All task types</option>
+                  {allTaskTypes.map(tt => (
+                    <option key={tt} value={tt}>{tt}</option>
+                  ))}
+                </select>
+                {(irrFilterPair !== "all" || irrFilterTaskType !== "all") && (
+                  <button onClick={() => { setIrrFilterPair("all"); setIrrFilterTaskType("all"); }}
+                    style={{
+                      background: "none", border: "none", cursor: "pointer",
+                      fontSize: 12, color: T.textMuted, fontFamily: T.fontBody,
+                    }}>
+                    Clear filters
+                  </button>
+                )}
+              </div>
+
+              <div style={{ background: T.cardBg, borderRadius: 14,
+                border: `1px solid ${T.border}`, overflow: "hidden" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr>
+                      {["Expert Pair", "Task Type", "Avg IRR", "Trend (wks 1–6 → 7–8)", "Records"].map(col => (
+                        <th key={col} style={{
+                          padding: "12px 16px", fontSize: 11, color: T.textMuted,
+                          textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 500,
+                          textAlign: "left", borderBottom: `1px solid ${T.border}`,
+                        }}>
+                          {col}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pairSummaries.map(({ key, aId, bId, avg, delta, taskType, weekCount }) => {
+                      const trendLabel = delta === null ? "—"
+                        : delta < -0.05 ? `↓ ${(delta).toFixed(2)}`
+                        : delta >  0.02 ? `↑ +${(delta).toFixed(2)}`
+                        : `→ ${delta >= 0 ? "+" : ""}${delta.toFixed(2)}`;
+                      const trendColor = delta === null ? T.textMuted
+                        : delta < -0.05 ? T.red
+                        : delta >  0.02 ? T.green
+                        : T.textMuted;
+                      return (
+                        <tr key={key} style={{ borderTop: `1px solid ${T.border}` }}>
+                          <td style={{ padding: "14px 16px" }}>
+                            <div style={{ fontSize: 13, color: T.textPrimary, fontWeight: 500 }}>
+                              {expertLabel(aId)}
+                            </div>
+                            <div style={{ fontSize: 12, color: T.textSecondary, marginTop: 2 }}>
+                              + {expertLabel(bId)}
+                            </div>
+                          </td>
+                          <td style={{ padding: "14px 16px" }}>
+                            <span style={{ fontSize: 11, color: T.blue, background: T.blue + "1E",
+                              padding: "2px 8px", borderRadius: 20 }}>
+                              {taskType}
+                            </span>
+                          </td>
+                          <td style={{ padding: "14px 16px" }}>
+                            <span style={{ fontFamily: T.fontMono, fontWeight: 700,
+                              fontSize: 15, color: irrColor(avg) }}>
+                              {avg.toFixed(2)}
+                            </span>
+                          </td>
+                          <td style={{ padding: "14px 16px", fontFamily: T.fontMono,
+                            fontSize: 12, color: trendColor, fontWeight: 600 }}>
+                            {trendLabel}
+                          </td>
+                          <td style={{ padding: "14px 16px", fontSize: 13,
+                            color: T.textSecondary }}>
+                            {weekCount}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div style={{ background: T.cardBg, borderRadius: 14,
+                border: `1px solid ${T.border}`, padding: 22 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T.textPrimary,
+                  marginBottom: 4 }}>
+                  IRR by Week
+                </div>
+                <div style={{ fontSize: 11, color: T.textMuted, marginBottom: 16 }}>
+                  Dashed line = 0.8 threshold · Line color: green ≥ 0.8, amber 0.70–0.79, red &lt; 0.70
+                </div>
+                <IRRLineChart records={filteredIRR} />
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 20px",
+                  marginTop: 14, paddingTop: 14, borderTop: `1px solid ${T.borderLight}` }}>
+                  {visiblePairs.map(key => {
+                    const [aId, bId] = key.split("|");
+                    const rows = filteredIRR.filter(r =>
+                      pairingKey(r.expert_a_id, r.expert_b_id) === key
+                    );
+                    const avg = rows.reduce((s,r) => s + r.agreement_score, 0) / rows.length;
+                    return (
+                      <div key={key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <div style={{ width: 20, height: 3, borderRadius: 2,
+                          backgroundColor: irrColor(avg) }} />
+                        <span style={{ fontSize: 11, color: T.textSecondary }}>
+                          {expertLabel(aId)} + {expertLabel(bId)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </div>
+          );
+        })()}
       </main>
 
       {/* Footer */}
