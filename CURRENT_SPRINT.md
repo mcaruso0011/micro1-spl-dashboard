@@ -10,11 +10,11 @@
 
 ```
 ✅ 1. IRR Tracking View         complete — Session 2
-⬜ 2. Drift Monitoring          NEXT — data ready
-⬜ 3. Gold Standard Tracking    data ready
+✅ 2. Drift Monitoring          complete — Session 3
+✅ 3. Gold Standard Tracking    complete — Session 4
 ```
 
-**Progress: 1 of 3 UI features — Sessions 1 + 2 complete and verified**
+**Progress: 3 of 3 UI features — v2 complete ✅**
 
 ---
 
@@ -39,11 +39,14 @@ Six-tab dashboard running in dashboard.jsx and preview.html:
 - Expert Roster tab — searchable table, trend %, readiness score, click-to-expand detail panel
 - Pipeline tab — funnel visualization, stage health cards, static notes section
 - Alerts tab — categorized alerts, acknowledge actions, timestamped log
-- QA Governance tab — IRR Tracking panel (filter row, summary table, SVG line chart + legend); Drift and Gold Standard panels scaffolded but not yet built
+- QA Governance tab — IRR Tracking panel (filter row, summary table, SVG line chart + legend); Drift Monitoring panel (filter toggle, summary table, SVG line chart + legend); Gold Standard Tracking panel (summary table, SVG horizontal bar chart)
 
 New module-level helpers: `expertLabel(id)`, `pairingKey(a, b)`, `pairingLabel(a, b)`
 New component: `IRRLineChart` (pure SVG, receives filtered records, one polyline per pairing)
-New state: `irrFilterPair`, `irrFilterTaskType`
+New component: `DriftLineChart` (pure SVG, y-axis 70–100, amber shade over wks 7–8, red/blue line per expert)
+New component: `GoldStandardChart` (pure SVG horizontal bar chart, color-coded by tier, threshold line at 0.85)
+New state: `irrFilterPair`, `irrFilterTaskType`, `driftShowFlaggedOnly`
+New constant: `WEEKLY_ACCURACY` (40 records: 5 experts × 8 weeks)
 
 Theme: warm cream/pastel light. Fonts: Instrument Sans + Fira Code. Design tokens in `const T`.
 
@@ -117,19 +120,99 @@ All expert labels show "Name (ID)" format                          ✅ check
 
 ---
 
-## Next Up — Session 3: Drift Monitoring
+---
 
-### Drift Monitoring (Session 3)
-- Lives inside QA Governance tab as a second panel
-- Accuracy broken out by week, not just overall average
-- Line chart per expert showing week-over-week trend
-- Highlights experts whose recent window diverges from overall average by more than 10 points
+## ✅ Completed — Session 3: Drift Monitoring
 
-### Gold Standard Tracking (Session 4)
-- Lives inside QA Governance tab as a third panel
-- Per-expert agreement rate against gold standard items over time
-- Recalibration threshold line at 85%
-- Flags experts below threshold with a clear visual indicator
+Added to both `dashboard.jsx` and `preview.html` in sync.
+
+**What was added:**
+
+New constant `WEEKLY_ACCURACY` (module-level, before `function isValidDate`):
+- 40 records: 5 experts × 8 weeks (Jan 6 – Feb 24 2026)
+- Fields: `wa_id`, `expert_id`, `week_number`, `accuracy`, `date_recorded`
+- E-001, E-003, E-005: flat/stable (~97–99%), all deltas < ±2 pts
+- E-009 (Dr. Priya Nair): 8-wk avg 90.25%, recent avg 78.25%, delta −12.0 pts → flagged
+- E-010 (James Okafor): erratic 85–91%, recent avg 85.05%, delta −2.45 pts → not flagged
+
+New component `DriftLineChart` (pure SVG, placed between IRRLineChart and PipelineFunnel):
+- Same 660×200 viewBox / margin constants as IRRLineChart
+- Y-axis zoomed to 70–100 (30-pt scale), grid lines at 75/80/85/90/95/100
+- Amber shaded rect over weeks 7–8 (the "recent window" evaluated for drift)
+- Wk 7 + Wk 8 x-labels render in amber; weeks 1–6 in textMuted
+- Line color per expert: red if `(recentAvg - overall) < -10`, blue otherwise
+
+New state: `driftShowFlaggedOnly` (boolean, default false)
+
+Drift Monitoring panel inside QA Governance IIFE return (after IRR chart card):
+- Section header with flagged-expert count
+- "Show flagged only" / "Showing flagged only" toggle button
+- Summary table: Expert | Overall Acc | Recent Acc (wks 7–8) | Drift Delta | Status
+  - Flagged rows: amber background tint, red delta, "⚠ Flagged" amber pill
+  - Stable rows: no tint, textMuted delta, "✓ Stable" green pill
+- DriftLineChart with `visibleRecords`
+- Legend below chart (color swatch + expertLabel per visible expert)
+
+**Verification numbers:**
+```
+E-009 overall: 90.25%  recent: 78.25%  delta: −12.0 pts  → Flagged ✅
+E-010 overall: 87.50%  recent: 85.05%  delta: −2.5 pts   → Stable ✅
+E-001/E-003/E-005 deltas all < ±2 pts                    → Stable ✅
+```
+
+---
+
+---
+
+## ✅ Completed — Session 4: Gold Standard Tracking
+
+Added to both `dashboard.jsx` and `preview.html` in sync.
+
+**What was added:**
+
+No new constants or state — all data already existed in `GOLD_STANDARD_RESULTS` (60 records).
+
+New component `GoldStandardChart` (pure SVG, placed between DriftLineChart and PipelineFunnel):
+- viewBox 660×200, ML=180 (wider for expert name labels), MR=24, MT=20, MB=28
+- Horizontal bar chart — one bar per expert, sorted avg ascending (worst at top)
+- Bar color: T.green ≥0.85, T.amber ≥0.75, T.red <0.75 (FOUNDATION.md thresholds)
+- Vertical dashed amber threshold line at x=0.85
+- "0.85" label above threshold line; score value in Fira Code after each bar
+- Track (gray background bar) behind each colored bar
+
+Computed inside QA Governance IIFE (before `return (`):
+- `gsSummaries` — per-expert `{ eid, avg, itemCount, flagged }` sorted avg ascending
+- `gsFlaggedCount` — count where avg < 0.85
+
+Gold Standard Tracking panel (third section in QA Governance, after Drift panel):
+- Header with flagged expert count
+- Summary table: Expert | Items Attempted | Avg Agreement | Status badge
+  - Okafor (0.70): red+10 tint, "✗ Recalibrate" red pill
+  - Nair (0.82): amber+12 tint, "⚠ Monitor" amber pill
+  - All controls (0.89–0.95): no tint, "✓ Passing" green pill
+- GoldStandardChart bar chart + subtitle note
+
+**Verification numbers:**
+```
+E-010 (Okafor):     avg = 0.70  → red    · ✗ Recalibrate ✅
+E-009 (Nair):       avg = 0.82  → amber  · ⚠ Monitor     ✅
+E-007 (Al-Hassan):  avg = 0.89  → green  · ✓ Passing     ✅
+E-003 (Sharma):     avg = 0.91  → green  · ✓ Passing     ✅
+E-001 (Chen):       avg = 0.92  → green  · ✓ Passing     ✅
+E-005 (Volkov):     avg = 0.95  → green  · ✓ Passing     ✅
+gsFlaggedCount = 2
+```
+
+---
+
+## v2 Complete — What's Next
+
+All three v2 features are shipped. Dashboard is shareable as a portfolio piece.
+
+If continuing, candidates for v2 phase 2 (see FOUNDATION.md roadmap):
+- Audit cadence configuration
+- Calibration session log
+- Recalibration threshold alerts (surface on Overview tab when an expert is flagged)
 
 ---
 

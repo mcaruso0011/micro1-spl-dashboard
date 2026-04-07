@@ -111,3 +111,23 @@ Format: `[YYYY-MM-DD] — [Decision] — [Reason / tradeoff]`
 [2026-03-30] — Filter state (`irrFilterPair`, `irrFilterTaskType`) held at Dashboard component level, not scoped to tab IIFE — State lifts to Dashboard so the selected filters persist if the user navigates to another tab and returns. If state were local to the IIFE it would reset on every tab switch.
 
 [2026-03-30] — IRRLineChart x-axis hardcoded to 8 weeks — Week labels 1–8 are fixed. If filtered data spans fewer weeks the chart still shows all 8 labels; missing weeks simply have no points. Acceptable for the 8-week synthetic dataset. Would need to be data-driven for a variable time window.
+
+[2026-03-30] — DriftLineChart y-axis zoomed to 70–100 instead of 0–100 — On a 0–100 scale, a 12-point drop from 90% to 78% is visually unremarkable (looks like a small dip near the top). Zooming to 70–100 compresses the scale so the same drop uses the full plot height. This is an intentional visual design choice to make the critical signal more dramatic.
+
+[2026-03-30] — Drift flagging threshold set at delta < −10 points — A 10-point gap between overall accuracy and recent-window accuracy was chosen as a meaningful operational threshold. E-009's −12.0 pt drop is flagged; E-010's −2.45 pt erratic swing is not. The threshold is a module-level constant implicitly (via the literal in the flag condition). Candidate for making configurable.
+
+[2026-03-30] — Recent window defined as weeks 7–8 (last 2 of 8) for drift computation — Both `driftSummaries` computation and `DriftLineChart` shading use `week_number >= 7`. This is the same late-window split used for IRR trend delta (wks 7–8 vs 1–6). Consistent framing across both panels; "recent" always means the same thing on the QA Governance tab.
+
+[2026-03-30] — `driftShowFlaggedOnly` filter state held at Dashboard level — Same rationale as `irrFilterPair`/`irrFilterTaskType`: persists across tab switches. A user who toggles "Show flagged only", goes to Projects tab, and returns should still see the filtered view.
+
+[2026-03-30] — Drift summary table rows sorted by delta ascending (most drifted first) — `sort((a, b) => a.delta - b.delta)` puts the most negative delta at the top. E-009 (−12.0) always appears first. This matches the operational priority: most concerning experts should be immediately visible without scrolling.
+
+[2026-04-06] — Gold Standard panel uses a horizontal bar chart instead of a line chart — No time dimension in the data (all 60 results share a single date range). A line chart would have no meaningful x-axis. A horizontal bar chart shows relative standing at a glance and makes the threshold line's position immediately scannable left-to-right.
+
+[2026-04-06] — GoldStandardChart left margin set to ML=180, wider than other charts — Expert labels ("Prof. Elena Volkov (E-005)") are significantly longer than the y-axis tick labels on line charts. ML=180 provides enough space at fontSize 9 without truncation.
+
+[2026-04-06] — Gold Standard tracking uses two severity tiers below threshold: Monitor (0.75–0.84) and Recalibrate (<0.75) — Matches FOUNDATION.md quality thresholds exactly. A single "flagged" state would mask the difference between Nair (0.82, borderline) and Okafor (0.70, systematic failure). The two-tier system gives the SPL actionable signal: monitor vs. pull from rotation.
+
+[2026-04-06] — No filter toggle on Gold Standard panel — Unlike Drift (which has "Show flagged only"), the Gold Standard panel always shows all 6 experts. With only 6 rows sorted worst-first, the two flagged experts are immediately at the top. A filter adds UI complexity without meaningful navigation benefit at this table size.
+
+[2026-04-06] — Gold Standard rows sorted by avg ascending (lowest first) — Same rationale as Drift delta sort: most concerning expert (Okafor, 0.70) appears at the top of both the table and the bar chart without any interaction. Operational priority drives visual priority.

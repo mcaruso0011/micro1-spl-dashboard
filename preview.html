@@ -419,6 +419,54 @@
       { gs_result_id: "GSR-060", gs_item_id: "GS-010", expert_id: "E-005", agreement_score: 0.95, date_completed: "2026-01-24" },
     ];
 
+    const WEEKLY_ACCURACY = [
+      // --- Dr. Sarah Chen (E-001) | stable control ---
+      { wa_id: "WA-001", expert_id: "E-001", week_number: 1, accuracy: 96.8, date_recorded: "2026-01-06" },
+      { wa_id: "WA-002", expert_id: "E-001", week_number: 2, accuracy: 97.2, date_recorded: "2026-01-13" },
+      { wa_id: "WA-003", expert_id: "E-001", week_number: 3, accuracy: 97.5, date_recorded: "2026-01-20" },
+      { wa_id: "WA-004", expert_id: "E-001", week_number: 4, accuracy: 97.1, date_recorded: "2026-01-27" },
+      { wa_id: "WA-005", expert_id: "E-001", week_number: 5, accuracy: 98.0, date_recorded: "2026-02-03" },
+      { wa_id: "WA-006", expert_id: "E-001", week_number: 6, accuracy: 97.6, date_recorded: "2026-02-10" },
+      { wa_id: "WA-007", expert_id: "E-001", week_number: 7, accuracy: 97.3, date_recorded: "2026-02-17" },
+      { wa_id: "WA-008", expert_id: "E-001", week_number: 8, accuracy: 97.8, date_recorded: "2026-02-24" },
+      // --- Dr. Priya Sharma (E-003) | stable control ---
+      { wa_id: "WA-009", expert_id: "E-003", week_number: 1, accuracy: 97.9, date_recorded: "2026-01-06" },
+      { wa_id: "WA-010", expert_id: "E-003", week_number: 2, accuracy: 98.3, date_recorded: "2026-01-13" },
+      { wa_id: "WA-011", expert_id: "E-003", week_number: 3, accuracy: 98.1, date_recorded: "2026-01-20" },
+      { wa_id: "WA-012", expert_id: "E-003", week_number: 4, accuracy: 98.4, date_recorded: "2026-01-27" },
+      { wa_id: "WA-013", expert_id: "E-003", week_number: 5, accuracy: 98.5, date_recorded: "2026-02-03" },
+      { wa_id: "WA-014", expert_id: "E-003", week_number: 6, accuracy: 98.0, date_recorded: "2026-02-10" },
+      { wa_id: "WA-015", expert_id: "E-003", week_number: 7, accuracy: 98.2, date_recorded: "2026-02-17" },
+      { wa_id: "WA-016", expert_id: "E-003", week_number: 8, accuracy: 98.6, date_recorded: "2026-02-24" },
+      // --- Prof. Elena Volkov (E-005) | stable control ---
+      { wa_id: "WA-017", expert_id: "E-005", week_number: 1, accuracy: 98.8, date_recorded: "2026-01-06" },
+      { wa_id: "WA-018", expert_id: "E-005", week_number: 2, accuracy: 99.2, date_recorded: "2026-01-13" },
+      { wa_id: "WA-019", expert_id: "E-005", week_number: 3, accuracy: 99.0, date_recorded: "2026-01-20" },
+      { wa_id: "WA-020", expert_id: "E-005", week_number: 4, accuracy: 98.9, date_recorded: "2026-01-27" },
+      { wa_id: "WA-021", expert_id: "E-005", week_number: 5, accuracy: 99.3, date_recorded: "2026-02-03" },
+      { wa_id: "WA-022", expert_id: "E-005", week_number: 6, accuracy: 99.1, date_recorded: "2026-02-10" },
+      { wa_id: "WA-023", expert_id: "E-005", week_number: 7, accuracy: 99.0, date_recorded: "2026-02-17" },
+      { wa_id: "WA-024", expert_id: "E-005", week_number: 8, accuracy: 99.4, date_recorded: "2026-02-24" },
+      // --- Dr. Priya Nair (E-009) | DRIFT CASE: healthy wks 1–6, drops wks 7–8 ---
+      { wa_id: "WA-025", expert_id: "E-009", week_number: 1, accuracy: 94.2, date_recorded: "2026-01-06" },
+      { wa_id: "WA-026", expert_id: "E-009", week_number: 2, accuracy: 93.8, date_recorded: "2026-01-13" },
+      { wa_id: "WA-027", expert_id: "E-009", week_number: 3, accuracy: 95.1, date_recorded: "2026-01-20" },
+      { wa_id: "WA-028", expert_id: "E-009", week_number: 4, accuracy: 94.5, date_recorded: "2026-01-27" },
+      { wa_id: "WA-029", expert_id: "E-009", week_number: 5, accuracy: 94.7, date_recorded: "2026-02-03" },
+      { wa_id: "WA-030", expert_id: "E-009", week_number: 6, accuracy: 93.2, date_recorded: "2026-02-10" },
+      { wa_id: "WA-031", expert_id: "E-009", week_number: 7, accuracy: 79.1, date_recorded: "2026-02-17" },
+      { wa_id: "WA-032", expert_id: "E-009", week_number: 8, accuracy: 77.4, date_recorded: "2026-02-24" },
+      // --- James Okafor (E-010) | erratic, not flagged (delta < 10 pts) ---
+      { wa_id: "WA-033", expert_id: "E-010", week_number: 1, accuracy: 87.2, date_recorded: "2026-01-06" },
+      { wa_id: "WA-034", expert_id: "E-010", week_number: 2, accuracy: 89.5, date_recorded: "2026-01-13" },
+      { wa_id: "WA-035", expert_id: "E-010", week_number: 3, accuracy: 85.3, date_recorded: "2026-01-20" },
+      { wa_id: "WA-036", expert_id: "E-010", week_number: 4, accuracy: 90.1, date_recorded: "2026-01-27" },
+      { wa_id: "WA-037", expert_id: "E-010", week_number: 5, accuracy: 86.8, date_recorded: "2026-02-03" },
+      { wa_id: "WA-038", expert_id: "E-010", week_number: 6, accuracy: 91.0, date_recorded: "2026-02-10" },
+      { wa_id: "WA-039", expert_id: "E-010", week_number: 7, accuracy: 84.5, date_recorded: "2026-02-17" },
+      { wa_id: "WA-040", expert_id: "E-010", week_number: 8, accuracy: 85.6, date_recorded: "2026-02-24" },
+    ];
+
     function isValidDate(str) {
       return /^\d{4}-\d{2}-\d{2}$/.test(str) && !isNaN(new Date(str));
     }
@@ -783,6 +831,150 @@
       );
     };
 
+    // --- Drift Line Chart ---
+    const DriftLineChart = ({ records }) => {
+      if (!records.length) return (
+        <div style={{ height: 200, display: "flex", alignItems: "center",
+          justifyContent: "center" }}>
+          <span style={{ fontSize: 12, color: T.textMuted }}>No data</span>
+        </div>
+      );
+
+      const expertIds = [...new Set(records.map(r => r.expert_id))];
+      const W = 660, H = 200, ML = 44, MR = 16, MT = 16, MB = 28;
+      const PW = W - ML - MR;
+      const PH = H - MT - MB;
+      const xOf     = (week) => ML + (week - 1) * (PW / 7);
+      const yOf     = (acc)  => MT + PH - ((acc - 70) / 30) * PH;
+      const halfStep = (PW / 7) / 2;
+
+      return (
+        <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block" }}>
+          {/* Recent-window shade (wks 7–8) */}
+          <rect x={xOf(7) - halfStep} y={MT} width={W - MR - (xOf(7) - halfStep)}
+            height={PH} fill={T.amber} opacity={0.07} />
+
+          {/* Y-axis grid lines and labels */}
+          {[75, 80, 85, 90, 95, 100].map(v => (
+            <g key={v}>
+              <line x1={ML} x2={W - MR} y1={yOf(v)} y2={yOf(v)}
+                stroke={T.borderLight} strokeWidth={1} />
+              <text x={ML - 6} y={yOf(v) + 4} textAnchor="end"
+                fontSize={9} fill={T.textMuted} fontFamily={T.fontMono}>
+                {v}%
+              </text>
+            </g>
+          ))}
+
+          {/* X-axis week labels */}
+          {[1,2,3,4,5,6,7,8].map(w => (
+            <text key={w} x={xOf(w)} y={H - 6} textAnchor="middle"
+              fontSize={9} fill={w >= 7 ? T.amber : T.textMuted} fontFamily={T.fontMono}>
+              Wk {w}
+            </text>
+          ))}
+
+          {/* One polyline per expert */}
+          {expertIds.map(eid => {
+            const pts = records
+              .filter(r => r.expert_id === eid)
+              .sort((a, b) => a.week_number - b.week_number);
+            const d = pts.map(r =>
+              `${xOf(r.week_number).toFixed(1)},${yOf(r.accuracy).toFixed(1)}`
+            ).join(" ");
+            const overall = pts.reduce((s, r) => s + r.accuracy, 0) / pts.length;
+            const recent  = pts.filter(r => r.week_number >= 7);
+            const recentAvg = recent.length
+              ? recent.reduce((s, r) => s + r.accuracy, 0) / recent.length
+              : overall;
+            const lineColor = (recentAvg - overall) < -10 ? T.red : T.blue;
+            return (
+              <g key={eid}>
+                <polyline points={d} fill="none"
+                  stroke={lineColor} strokeWidth={2} opacity={0.85} />
+                {pts.map(r => (
+                  <circle key={r.wa_id}
+                    cx={xOf(r.week_number)} cy={yOf(r.accuracy)} r={3}
+                    fill={lineColor} opacity={0.9} />
+                ))}
+              </g>
+            );
+          })}
+        </svg>
+      );
+    };
+
+    // --- Gold Standard Chart ---
+    const GoldStandardChart = ({ summaries }) => {
+      if (!summaries.length) return (
+        <div style={{ height: 200, display: "flex", alignItems: "center",
+          justifyContent: "center" }}>
+          <span style={{ fontSize: 12, color: T.textMuted }}>No data</span>
+        </div>
+      );
+
+      const W = 660, H = 200, ML = 180, MR = 24, MT = 20, MB = 28;
+      const PW = W - ML - MR;
+      const PH = H - MT - MB;
+      const xOf = (v) => ML + v * PW;
+      const n = summaries.length;
+      const rowH = PH / n;
+      const barH = Math.min(18, rowH * 0.6);
+      const gsColor = (avg) => avg >= 0.85 ? T.green : avg >= 0.75 ? T.amber : T.red;
+      const THRESH = 0.85;
+
+      return (
+        <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block" }}>
+          {/* X-axis grid lines */}
+          {[0, 0.2, 0.4, 0.6, 0.8, 1.0].map(v => (
+            <g key={v}>
+              <line x1={xOf(v)} x2={xOf(v)} y1={MT} y2={MT + PH}
+                stroke={T.borderLight} strokeWidth={1} />
+              <text x={xOf(v)} y={H - 6} textAnchor="middle"
+                fontSize={9} fill={T.textMuted} fontFamily={T.fontMono}>
+                {v.toFixed(1)}
+              </text>
+            </g>
+          ))}
+
+          {/* Threshold line at 0.85 */}
+          <line x1={xOf(THRESH)} x2={xOf(THRESH)} y1={MT} y2={MT + PH}
+            stroke={T.amber} strokeWidth={1.5} strokeDasharray="4 3" opacity={0.9} />
+          <text x={xOf(THRESH)} y={MT - 5} textAnchor="middle"
+            fontSize={9} fill={T.amber} fontFamily={T.fontMono}>
+            0.85
+          </text>
+
+          {/* One bar per expert */}
+          {summaries.map((s, i) => {
+            const cy   = MT + i * rowH + rowH / 2;
+            const barY = cy - barH / 2;
+            const color = gsColor(s.avg);
+            return (
+              <g key={s.eid}>
+                {/* Track (background) */}
+                <rect x={ML} y={barY} width={PW} height={barH}
+                  fill={T.trackBg} rx={3} />
+                {/* Bar */}
+                <rect x={ML} y={barY} width={s.avg * PW} height={barH}
+                  fill={color} rx={3} opacity={0.85} />
+                {/* Expert name label (left) */}
+                <text x={ML - 8} y={cy + 4} textAnchor="end"
+                  fontSize={9} fill={T.textSecondary} fontFamily={T.fontBody}>
+                  {expertLabel(s.eid)}
+                </text>
+                {/* Score value (right of bar) */}
+                <text x={ML + s.avg * PW + 6} y={cy + 4} textAnchor="start"
+                  fontSize={10} fill={color} fontFamily={T.fontMono} fontWeight="bold">
+                  {s.avg.toFixed(2)}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      );
+    };
+
     // --- Pipeline Funnel ---
     const PipelineFunnel = ({ stages }) => {
       const maxTasks = stages[0].tasks || 1;
@@ -1116,6 +1308,7 @@
       const [alerts,         setAlerts]         = useState(ALERTS);
       const [irrFilterPair,     setIrrFilterPair]     = useState("all");
       const [irrFilterTaskType, setIrrFilterTaskType] = useState("all");
+      const [driftShowFlaggedOnly, setDriftShowFlaggedOnly] = useState(false);
 
       useEffect(() => {
         setAnimateIn(true);
@@ -1923,6 +2116,39 @@
               };
               const irrColor = (v) => v >= 0.8 ? T.green : v >= 0.7 ? T.amber : T.red;
 
+              const driftSummaries = (() => {
+                const expertIds = [...new Set(WEEKLY_ACCURACY.map(r => r.expert_id))];
+                return expertIds.map(eid => {
+                  const rows      = WEEKLY_ACCURACY.filter(r => r.expert_id === eid);
+                  const overall   = rows.reduce((s, r) => s + r.accuracy, 0) / rows.length;
+                  const recent    = rows.filter(r => r.week_number >= 7);
+                  const recentAvg = recent.length
+                    ? recent.reduce((s, r) => s + r.accuracy, 0) / recent.length
+                    : overall;
+                  const delta   = recentAvg - overall;
+                  const flagged = delta < -10;
+                  return { eid, overall, recentAvg, delta, flagged };
+                }).sort((a, b) => a.delta - b.delta);
+              })();
+
+              const flaggedCount   = driftSummaries.filter(d => d.flagged).length;
+              const visibleDrift   = driftShowFlaggedOnly
+                ? driftSummaries.filter(d => d.flagged)
+                : driftSummaries;
+              const visibleRecords = WEEKLY_ACCURACY.filter(r =>
+                visibleDrift.some(d => d.eid === r.expert_id)
+              );
+
+              const gsSummaries = (() => {
+                const expertIds = [...new Set(GOLD_STANDARD_RESULTS.map(r => r.expert_id))];
+                return expertIds.map(eid => {
+                  const rows = GOLD_STANDARD_RESULTS.filter(r => r.expert_id === eid);
+                  const avg  = rows.reduce((s, r) => s + r.agreement_score, 0) / rows.length;
+                  return { eid, avg, itemCount: rows.length, flagged: avg < 0.85 };
+                }).sort((a, b) => a.avg - b.avg);
+              })();
+              const gsFlaggedCount = gsSummaries.filter(d => d.flagged).length;
+
               return (
                 <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
@@ -2056,6 +2282,215 @@
                         );
                       })}
                     </div>
+                  </div>
+
+                  {/* ===== DRIFT MONITORING PANEL ===== */}
+                  <div style={{ borderTop: `2px solid ${T.borderLight}`, paddingTop: 32, marginTop: 8 }}>
+
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: T.textPrimary }}>
+                        Drift Monitoring
+                      </div>
+                      <div style={{ fontSize: 13, color: T.textMuted, marginTop: 2 }}>
+                        Week-over-week accuracy · {flaggedCount} expert{flaggedCount !== 1 ? "s" : ""} flagged
+                        (recent window &gt; 10 pts below overall)
+                      </div>
+                    </div>
+
+                    <button onClick={() => setDriftShowFlaggedOnly(!driftShowFlaggedOnly)}
+                      style={{
+                        background: driftShowFlaggedOnly ? T.amber + "22" : T.inputBg,
+                        border: `1px solid ${driftShowFlaggedOnly ? T.amber : T.border}`,
+                        borderRadius: 8, padding: "6px 14px", fontSize: 12,
+                        color: driftShowFlaggedOnly ? T.amber : T.textMuted,
+                        fontFamily: T.fontBody, cursor: "pointer",
+                        marginBottom: 16,
+                      }}>
+                      {driftShowFlaggedOnly ? "Showing flagged only" : "Show flagged only"}
+                    </button>
+
+                    <div style={{ background: T.cardBg, borderRadius: 14,
+                      border: `1px solid ${T.border}`, overflow: "hidden", marginBottom: 16 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                          <tr>
+                            {["Expert", "Overall Acc", "Recent Acc (wks 7–8)", "Drift Delta", "Status"].map(col => (
+                              <th key={col} style={{
+                                padding: "12px 16px", fontSize: 11, color: T.textMuted,
+                                textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 500,
+                                textAlign: "left", borderBottom: `1px solid ${T.border}`,
+                              }}>
+                                {col}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {visibleDrift.map(({ eid, overall, recentAvg, delta, flagged }) => (
+                            <tr key={eid} style={{
+                              borderTop: `1px solid ${T.border}`,
+                              backgroundColor: flagged ? T.amber + "12" : "transparent",
+                            }}>
+                              <td style={{ padding: "14px 16px", fontSize: 13,
+                                color: T.textPrimary, fontWeight: 500 }}>
+                                {expertLabel(eid)}
+                              </td>
+                              <td style={{ padding: "14px 16px", fontFamily: T.fontMono,
+                                fontSize: 13, color: T.textSecondary }}>
+                                {overall.toFixed(1)}%
+                              </td>
+                              <td style={{ padding: "14px 16px", fontFamily: T.fontMono,
+                                fontSize: 13, color: T.textSecondary }}>
+                                {recentAvg.toFixed(1)}%
+                              </td>
+                              <td style={{ padding: "14px 16px", fontFamily: T.fontMono,
+                                fontSize: 13, fontWeight: 600,
+                                color: flagged ? T.red : T.textMuted }}>
+                                {flagged
+                                  ? `↓ −${Math.abs(delta).toFixed(1)} pts`
+                                  : "→ stable"}
+                              </td>
+                              <td style={{ padding: "14px 16px" }}>
+                                {flagged
+                                  ? <span style={{
+                                      background: T.amber + "33", color: T.amber,
+                                      border: `1px solid ${T.amber}55`,
+                                      borderRadius: 20, padding: "2px 10px",
+                                      fontSize: 11, fontWeight: 600,
+                                    }}>⚠ Flagged</span>
+                                  : <span style={{
+                                      background: T.green + "22", color: T.green,
+                                      border: `1px solid ${T.green}55`,
+                                      borderRadius: 20, padding: "2px 10px",
+                                      fontSize: 11, fontWeight: 600,
+                                    }}>✓ Stable</span>
+                                }
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div style={{ background: T.cardBg, borderRadius: 14,
+                      border: `1px solid ${T.border}`, padding: 22 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: T.textPrimary,
+                        marginBottom: 4 }}>
+                        Accuracy by Week
+                      </div>
+                      <div style={{ fontSize: 11, color: T.textMuted, marginBottom: 16 }}>
+                        Shaded area = recent window (wks 7–8) · Red line = flagged drift · Blue = stable
+                      </div>
+                      <DriftLineChart records={visibleRecords} />
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 20px",
+                        marginTop: 14, paddingTop: 14, borderTop: `1px solid ${T.borderLight}` }}>
+                        {visibleDrift.map(({ eid, flagged }) => (
+                          <div key={eid} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <div style={{ width: 20, height: 3, borderRadius: 2,
+                              backgroundColor: flagged ? T.red : T.blue }} />
+                            <span style={{ fontSize: 11, color: T.textSecondary }}>
+                              {expertLabel(eid)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* ===== GOLD STANDARD TRACKING PANEL ===== */}
+                  <div style={{ borderTop: `2px solid ${T.borderLight}`, paddingTop: 32, marginTop: 8 }}>
+
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: T.textPrimary }}>
+                        Gold Standard Tracking
+                      </div>
+                      <div style={{ fontSize: 13, color: T.textMuted, marginTop: 2 }}>
+                        Agreement against known-correct items · {gsFlaggedCount} expert{gsFlaggedCount !== 1 ? "s" : ""} below recalibration threshold (0.85)
+                      </div>
+                    </div>
+
+                    <div style={{ background: T.cardBg, borderRadius: 14,
+                      border: `1px solid ${T.border}`, overflow: "hidden", marginBottom: 16 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                          <tr>
+                            {["Expert", "Items Attempted", "Avg Agreement", "Status"].map(col => (
+                              <th key={col} style={{
+                                padding: "12px 16px", fontSize: 11, color: T.textMuted,
+                                textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 500,
+                                textAlign: "left", borderBottom: `1px solid ${T.border}`,
+                              }}>
+                                {col}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {gsSummaries.map(({ eid, avg, itemCount }) => {
+                            const isRed    = avg < 0.75;
+                            const isAmber  = avg >= 0.75 && avg < 0.85;
+                            const rowBg    = isRed ? T.red + "10" : isAmber ? T.amber + "12" : "transparent";
+                            const valColor = avg >= 0.85 ? T.green : avg >= 0.75 ? T.amber : T.red;
+                            return (
+                              <tr key={eid} style={{
+                                borderTop: `1px solid ${T.border}`,
+                                backgroundColor: rowBg,
+                              }}>
+                                <td style={{ padding: "14px 16px", fontSize: 13,
+                                  color: T.textPrimary, fontWeight: 500 }}>
+                                  {expertLabel(eid)}
+                                </td>
+                                <td style={{ padding: "14px 16px", fontSize: 13,
+                                  color: T.textSecondary }}>
+                                  {itemCount}
+                                </td>
+                                <td style={{ padding: "14px 16px", fontFamily: T.fontMono,
+                                  fontSize: 14, fontWeight: 700, color: valColor }}>
+                                  {avg.toFixed(2)}
+                                </td>
+                                <td style={{ padding: "14px 16px" }}>
+                                  {isRed
+                                    ? <span style={{
+                                        background: T.red + "22", color: T.red,
+                                        border: `1px solid ${T.red}55`,
+                                        borderRadius: 20, padding: "2px 10px",
+                                        fontSize: 11, fontWeight: 600,
+                                      }}>✗ Recalibrate</span>
+                                    : isAmber
+                                    ? <span style={{
+                                        background: T.amber + "33", color: T.amber,
+                                        border: `1px solid ${T.amber}55`,
+                                        borderRadius: 20, padding: "2px 10px",
+                                        fontSize: 11, fontWeight: 600,
+                                      }}>⚠ Monitor</span>
+                                    : <span style={{
+                                        background: T.green + "22", color: T.green,
+                                        border: `1px solid ${T.green}55`,
+                                        borderRadius: 20, padding: "2px 10px",
+                                        fontSize: 11, fontWeight: 600,
+                                      }}>✓ Passing</span>
+                                  }
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div style={{ background: T.cardBg, borderRadius: 14,
+                      border: `1px solid ${T.border}`, padding: 22 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: T.textPrimary,
+                        marginBottom: 4 }}>
+                        Agreement Score by Expert
+                      </div>
+                      <div style={{ fontSize: 11, color: T.textMuted, marginBottom: 16 }}>
+                        Vertical dashed line = 0.85 recalibration threshold · Sorted lowest to highest
+                      </div>
+                      <GoldStandardChart summaries={gsSummaries} />
+                    </div>
+
                   </div>
 
                 </div>
