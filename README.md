@@ -6,6 +6,8 @@ At companies like micro1, a Strategic Projects Lead coordinates teams of hundred
 
 ![Dashboard Overview](dashboard-preview.png)
 
+![QA Governance](qa-governance-preview.png)
+
 ---
 
 ## How to run it
@@ -23,36 +25,48 @@ No npm. No build step. No setup. It runs immediately.
 
 - **Risk visibility at the right layer of abstraction.** The Risk Alerts panel identifies the single largest contributing gap (pace, quality, or load) and states it in plain language. The SPL sees what to fix, not just that something is wrong.
 
-- **Separation of display logic from data model.** All derived fields (health score, pace, projected completion date, days to deadline, batch completion %) are computed at render time and never stored. The data model holds raw inputs only, eliminating stale cache and sync problems entirely.
+- **QA governance that catches what overall averages hide.** An expert at 91% overall accuracy can still be drifting badly in recent weeks. An expert at 88% overall can still be systematically miscalibrated against gold standard items. The QA Governance tab surfaces both failure modes through IRR tracking, week-over-week drift monitoring, and gold standard agreement rates — the metrics that determine whether training data is actually usable by frontier AI labs.
 
-- **A validator that distinguishes blocking errors from judgment calls.** The CSV import modal runs a full validator before confirming. Missing required fields block the import; data quality warnings (completion dates after deadline, inconsistent expert domain tags) flag but allow. This reflects how real operational data actually arrives.
+- **Separation of display logic from data model.** All derived fields (health score, pace, projected completion date, drift delta, gold standard averages) are computed at render time and never stored. The data model holds raw inputs only, eliminating stale cache and sync problems entirely.
 
-- **Export designed for the actual workflow.** The CSV export produces one row per project with 12 columns including projected completion date and average expert load, structured to drop directly into Excel or Sheets for a client update.
+- **A validator that distinguishes blocking errors from judgment calls.** The CSV import modal runs a full validator before confirming. Missing required fields block the import; data quality warnings flag but allow. This reflects how real operational data actually arrives.
 
-- **Progressive disclosure without modals.** Project and expert detail panels expand inline within their table rows. Full context (batches, assigned experts, load) is one click away without navigating away from the list view.
+- **Export designed for the actual workflow.** The CSV export produces one row per project with 12 columns structured to drop directly into Excel or Sheets for a client update.
+
+- **Progressive disclosure without modals.** Project and expert detail panels expand inline within their table rows. Full context is one click away without navigating away from the list view.
 
 ---
 
 ## Features
 
-1. **Health Snapshot** — color-coded project cards on the Overview tab with composite health score, status badge, and live days-to-deadline countdown
-2. **Risk Alerts panel** — surfaces only at-risk and critical projects with a plain-language reason string derived from the worst sub-score gap; shows "All projects healthy" when clear
-3. **Projects tab** — 9-column sortable table; click any header to sort asc / desc / reset; expanding a row shows batch progress bars and assigned expert load
-4. **Expert Roster** — searchable table with accuracy %, week-over-week trend, and a composite readiness score; experts in review status hard-capped at 70 regardless of raw score
-5. **CSV import** — drag-and-drop upload with full validation (errors block, warnings flag) and a confirmation preview before data is replaced
-6. **CSV export** — downloads a 12-column project summary including projected completion date, health status, and average expert load
+### Project Operations (v1)
+
+- **Health Snapshot** — color-coded project cards on the Overview tab with composite health score, status badge, and live days-to-deadline countdown
+- **Risk Alerts panel** — surfaces only at-risk and critical projects with a plain-language reason string derived from the worst sub-score gap; shows "All projects healthy" when clear
+- **Projects tab** — 9-column sortable table; click any header to sort asc / desc / reset; expanding a row shows batch progress bars and assigned expert load
+- **Expert Roster** — searchable table with accuracy %, week-over-week trend, and a composite readiness score
+- **CSV import** — drag-and-drop upload with full validation (errors block, warnings flag) and a confirmation preview before data is replaced
+- **CSV export** — downloads a 12-column project summary including projected completion date, health status, and average expert load
+
+### QA Governance (v2)
+
+- **IRR Tracking** — pairwise inter-rater reliability scores across expert pairs over time; filterable by pair and task type; visual threshold line at 0.8 so degradation is immediately visible
+- **Drift Monitoring** — week-over-week accuracy per expert with a zoomed y-axis that makes recent declines visible; flags experts whose last two weeks diverge from their overall average by more than 10 points
+- **Gold Standard Tracking** — individual expert agreement rates against gold standard items; horizontal bar chart with a threshold line at 0.85; distinguishes "recalibrate" from "monitor" from "passing"
 
 ---
 
 ## Tech decisions worth noting
 
-**Derived fields are computed, never stored.** Health score, pace, projected dates, and expert load are calculated fresh at render time from raw inputs. There is no sync problem and no stale cache.
+**Derived fields are computed, never stored.** Health score, pace, projected dates, drift delta, and gold standard averages are all calculated fresh at render time from raw inputs. There is no sync problem and no stale cache.
 
-**Single enrichment pass before sort.** When sorting the Projects table, each project is enriched with all derived fields once before the comparator runs. The sort key and the row cells read from the same pre-computed object, so `computeHealthScore` is called once per project per render regardless of sort state.
+**Single enrichment pass before sort.** When sorting the Projects table, each project is enriched with all derived fields once before the comparator runs. The sort key and the row cells read from the same pre-computed object.
 
 **Two-tier import validator.** Hard errors block the import; soft warnings surface for review but allow it to proceed. A missing required field is a data integrity failure. A completion date past a deadline is a flag worth knowing, not a reason to reject the file.
 
-**Atomic sort state.** Sort key and direction are stored as one `{ key, dir }` object rather than two separate `useState` values, eliminating any transient render with a mismatched key/direction pair.
+**Zoomed y-axis on drift chart.** The drift chart runs 70–100, not 0–100. A 12-point recent decline is a cliff on that scale. The same drop at full scale barely registers visually — which is exactly the problem drift monitoring is designed to prevent.
+
+**Canonical expert labeling.** All expert references in the QA Governance tab route through a single `expertLabel(id)` function that always renders as "Name (ID)". This resolves name collisions in the data without conditional logic at every render site.
 
 ---
 
@@ -65,7 +79,7 @@ micro1-spl-dashboard/
 ├── FOUNDATION.md          ← Product spec, data model, health score formula
 ├── DECISIONS.md           ← Full dated decision log
 ├── CURRENT_SPRINT.md      ← Sprint scratchpad (active work and open questions)
-├── ROADMAP.md             ← v2 features, known limitations, production considerations
+├── ROADMAP.md             ← Known limitations and production architecture considerations
 ├── RESEARCH.md            ← micro1 context and role research
 └── README.md              ← You are here
 ```
@@ -74,7 +88,7 @@ micro1-spl-dashboard/
 
 ## What's next
 
-This is v1, a working demo with synthetic data. See [ROADMAP.md](ROADMAP.md) for the full gap analysis between this and a production deployment, including known limitations, v2 features, and backend architecture considerations.
+See [ROADMAP.md](ROADMAP.md) for the full gap analysis between this demo and a production deployment, including known limitations, planned features (audit cadence configuration, calibration session log, recalibration alerts), and backend architecture considerations.
 
 ---
 
