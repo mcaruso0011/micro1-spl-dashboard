@@ -15,7 +15,7 @@ At companies like micro1, a Strategic Projects Lead coordinates teams of hundred
 1. Download or clone this repo
 2. Open `preview.html` in any browser
 
-No npm. No build step. No setup. It runs immediately.
+No need for an npm, build step, or setup. It runs immediately.
 
 ---
 
@@ -74,14 +74,15 @@ No npm. No build step. No setup. It runs immediately.
 
 ```
 micro1-spl-dashboard/
-├── dashboard.jsx          ← Main React component (all logic and UI)
-├── preview.html           ← Zero-install browser preview
-├── FOUNDATION.md          ← Product spec, data model, health score formula
-├── DECISIONS.md           ← Full dated decision log
-├── CURRENT_SPRINT.md      ← Sprint scratchpad (active work and open questions)
-├── ROADMAP.md             ← Known limitations and production architecture considerations
-├── RESEARCH.md            ← micro1 context and role research
-└── README.md              ← You are here
+├── dashboard.jsx              ← Main React component (all logic and UI)
+├── preview.html               ← Zero-install browser preview
+├── dashboard-preview.png      ← Overview tab screenshot
+├── qa-governance-preview.png  ← QA Governance tab screenshot
+├── FOUNDATION.md              ← Product spec, data model, health score formula
+├── DECISIONS.md               ← Full dated decision log
+├── CURRENT_SPRINT.md          ← Sprint scratchpad (active work and open questions)
+├── ROADMAP.md                 ← Known limitations and production architecture considerations
+└── README.md                  ← You are here
 ```
 
 ---
